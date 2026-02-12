@@ -243,6 +243,10 @@ export const updateComputer = async (req, res) => {
             employee.newComputer = computerID
             employee.status = 'Replaced'
             await employee.save()
+
+            updatedComputer.assignedTo = updateData.assignedTo
+            updatedComputer.status = 'Assigned'
+            await updatedComputer.save()
         }
 
         // Apply other updates (like notes) without affecting assignment logic

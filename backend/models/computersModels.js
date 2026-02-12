@@ -20,8 +20,7 @@ export const ComputerSchema = new Schema({
     assignedTo: {
         type: mongoose.Schema.Types.ObjectId || null,
         ref: 'Employee',
-        default: null,
-        unique: true
+        default: null
     },
     // Any notes about the computer
     notes: String,
