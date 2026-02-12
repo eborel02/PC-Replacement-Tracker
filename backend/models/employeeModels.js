@@ -29,11 +29,9 @@ export const EmployeeSchema = new Schema({
     },
     // If replaced, the new computer number
     newComputer: {
-        type: mongoose.Schema.Types.ObjectId, 
+        type: mongoose.Schema.Types.ObjectId || null, 
         ref: 'Computer',
-        default: null,
-        sparse: true,
-        unique: true
+        default: null
     },
     // Any notes that may provide more info
     notes: {
