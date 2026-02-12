@@ -1,9 +1,9 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "PC Replacement Tracker API",
   "license": "ISC",
-  "author": "",
+  "author": "Elijah Borel",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
