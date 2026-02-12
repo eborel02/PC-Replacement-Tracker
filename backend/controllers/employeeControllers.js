@@ -1,7 +1,9 @@
 import mongoose from 'mongoose'
 import { EmployeeSchema } from '../models/employeeModels'
+import { ComputerSchema } from '../models/computersModels'
 
 const Employee = mongoose.models.Employee || mongoose.model('Employee', EmployeeSchema)
+const Computer = mongoose.models.Computer || mongoose.model('Computer', ComputerSchema)
 
 /*====================================/
 /    METHOD TO CREATE NEW EMPLOYEE    /
@@ -246,6 +248,15 @@ export const updateEmployeePartial = async (req, res) => {
             })
         }
 
+        const employee = await Employee.findById(employeeID)
+        if (!employee) {
+            return res.status(404).json({
+                message: `Employee not found`
+            })
+        }
+
+        const oldComputerID = employee.newComputer;
+
         // Check for email duplication (if email is being updated)
         if (updates.email) {
             const existingEmail = await Employee.findOne({ email: updates.email, _id: { $ne: employeeID } })
@@ -266,28 +277,54 @@ export const updateEmployeePartial = async (req, res) => {
             }
         }
 
-        // Find and update employee
-        const updatedEmployee = await Employee.findByIdAndUpdate(
-            employeeID,
-            { $set: updates },
-            {
-                new: true,
-                runValidators: true,
-                context: 'query'
+        // If assigning a new computer
+        if (updates.newComputer && updates.newComputer !== oldComputerID) {
+            // Unassign old computer
+            if (oldComputerID) {
+                const oldComputer = await Computer.findById(oldComputerID)
+                if (oldComputer) {
+                    oldComputer.status = 'Available'
+                    oldComputer.assignedTo = null
+                    await oldComputer.save()
+                }
             }
-        )
+            
+            // Assign new computer
+            const newComputer = await Computer.findById(updates.newComputer)
+            if (!newComputer) {
+                return res.status(404).json({
+                    message: `New computer not found`
+                })
+            }
 
-        // If employee could not be found, send error
-        if (!updatedEmployee) {
-            return res.status(404).json({
-                message: `Employee not found`
-            })
+            newComputer.status = 'Assigned'
+            newComputer.assignedTo = employeeID
+            await newComputer.save()
+
+            employee.newComputer = updates.newComputer
+            employee.status = 'Replaced'    
         }
+
+        if (updates.status && updates.status !== 'Replaced' && employee.status === 'Replaced') {
+            if (oldComputerID) {
+                const oldComputer = await Computer.findById(oldComputerID)
+                if (oldComputer) {
+                    oldComputer.status = 'Available'
+                    oldComputer.assignedTo = null
+                    await oldComputer.save()
+                }
+            }
+            employee.newComputer = null;
+        }
+
+        // Apply other updates
+        Object.assign(employee, updates)
+        await employee.save();
 
         // If successful, send success message and return updated employee
         res.status(200).json({
             message: `Employee updated successfully`,
-            employee: updateEmployee
+            employee: employee
         })
     }
     // Catch any errors with updating employee
