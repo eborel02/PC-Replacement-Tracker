@@ -29,25 +29,23 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { visuallyHidden } from '@mui/utils';
 import { useState, useEffect } from 'react';
-import { Tab } from '@mui/material';
+import { Chip, Tab } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Select, MenuItem } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useTheme } from '@mui/material/styles';
 import { keyframes, width } from '@mui/system';
 
-const statusPulse = keyframes`
-  0% {
-    background-color: transparent;
-  }
-  30% {
-    background-color: currentColor;
-  }
-  100% {
-    background-color: transparent;
-  }
-`;
 
+const headCells = [
+    { id: 'employeeName', numeric: false, disablePadding: true, label: 'Employee Name' },
+    { id: 'email', numeric: false, disablePadding: false, label: 'Email' },
+    { id: 'currentComputer', numeric: false, disablePadding: false, label: 'Current Computer' },
+    { id: 'status', numeric: false, disablePadding: false, label: 'Status' },
+    { id: 'newComputer', numeric: false, disablePadding: false, label: 'New Computer' },
+    { id: 'notes', numeric: false, disablePadding: false, label: 'Notes'},
+    { id: 'actions', numeric: false, disablePadding: false, label: 'Actions' },
+]
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -65,16 +63,6 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-const headCells = [
-    { id: 'employeeName', numeric: false, disablePadding: true, label: 'Employee Name' },
-    { id: 'email', numeric: false, disablePadding: false, label: 'Email' },
-    { id: 'currentComputer', numeric: false, disablePadding: false, label: 'Current Computer' },
-    { id: 'status', numeric: false, disablePadding: false, label: 'Status', width: '300px' },
-    { id: 'newComputer', numeric: false, disablePadding: false, label: 'New Computer' },
-    { id: 'notes', numeric: false, disablePadding: false, label: 'Notes'},
-    { id: 'actions', numeric: false, disablePadding: false, label: 'Actions' }
-];
-
 function EnhancedTableHead(props) {
     const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
     const createSortHandler = (property) => (event) => {
@@ -84,7 +72,6 @@ function EnhancedTableHead(props) {
     return (
         <TableHead>
             <TableRow>
-                <TableCell />
                 <TableCell padding="checkbox">
                     <Checkbox
                         color="primary"
@@ -106,6 +93,8 @@ function EnhancedTableHead(props) {
                             width: headCell.width,
                             maxWidth: headCell.width,
                             whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
                         }}
                     >
                         <TableSortLabel
@@ -185,12 +174,6 @@ function EnhancedTableToolbar(props) {
                     <AddIcon />
                 </IconButton>
                 </Tooltip>
-
-                <Tooltip title="Filter list">
-                <IconButton>
-                    <FilterListIcon />
-                </IconButton>
-                </Tooltip>
             </Box>
         )}
 
@@ -207,29 +190,27 @@ EnhancedTableToolbar.propTypes = {
 /=========================*/
 const Employees = () => {
     const theme = useTheme();
+    const navigate = useNavigate();
+    // FETCHING EMPLOYEES FROM BACKEND
+    const [employees, setEmployees] = useState([]);
+    const fetchEmployees = async () => {
+        try {
+            const response = await fetch('http://localhost:4000/employees')
+            const data = await response.json();
+            setEmployees(data.employees);
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+        }
+    };
+    useEffect(() => {
+        fetchEmployees();
+    }, [])
 
     const statusColors = {
         "Awaiting Action": theme.palette.warning.main,
         "Pulled Without Replacement": theme.palette.error.main,
         "Replaced": theme.palette.success.main,
     };
-
-    // FETCHING EMPLOYEES FROM BACKEND
-    const [employees, setEmployees] = useState([]);
-    async function fetchEmployees() {
-        try {
-            const response = await fetch('http://localhost:4000/employees')
-            const data = await response.json();
-            console.log(data.employees);
-            setEmployees(data.employees);
-        } catch (error) {
-            console.error('Error fetching employees:', error);
-        }}
-    useEffect(() => {
-        fetchEmployees();
-    }, [])
-
-    const navigate = useNavigate();
 
     // DELETE DIALOG STATE AND HANDLERS
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -239,10 +220,7 @@ const Employees = () => {
     const [orderBy, setOrderBy] = useState('employeeName');
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
-    const [dense, setDense] = useState(false);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-
-    const [recentyUpdatedId, setRecentlyUpdatedId] = useState(null);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -288,12 +266,8 @@ const Employees = () => {
         setPage(0);
     };
 
-    const handleChangeDense = () => {
-        setDense(!dense);
-    };
-
     const handleRowEdit = (employeeId) => {
-            navigate (`/employees/${employeeId}/edit`);
+        navigate (`/employees/${employeeId}/edit`);
     };
 
     const handleOpenDeleteDialog = (employeeId) => {
@@ -335,14 +309,14 @@ const Employees = () => {
 
     return (
         <Box sx={{ width: '100%' }}>
-            <Paper sx={{ width: '100%', mb: 2 }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>
+                Employees
+            </Typography>
+
+            <Paper>
                 <EnhancedTableToolbar numSelected={selected.length} onAddEmployee={() => navigate("/employees/new")} />
                 <TableContainer>
-                    <Table
-                        sx={{ minWidth: 750 }}
-                        aria-labelledby="tableTitle"
-                        size={dense ? 'small' : 'medium'}
-                    >
+                    <Table>
                         <EnhancedTableHead
                             numSelected={selected.length}
                             order={order}
@@ -367,28 +341,6 @@ const Employees = () => {
                                         sx={{ 
                                             cursor: 'pointer',
                                             position: 'relative',
-                                            '&::before': {
-                                                content: '""',
-                                                position: 'absolute',
-                                                left: 0,
-                                                top: 0,
-                                                bottom: 0,
-                                                width: '4px',
-                                                backgroundColor: statusColors[row.status] ?? 'transparent', 
-                                                animation: recentyUpdatedId === row._id 
-                                                    ? `${statusPulse} 0.6s ease` 
-                                                    : 'none',
-                                                // transition: 'opacity 200ms ease',
-                                                },
-                                            transition: 'background-color 0.2s ease, transform 0.2s ease',
-                                            backgroundColor: recentyUpdatedId === row._id 
-                                                ? alpha(statusColors[row.status] ?? theme.palette.primary.main, 0.12) 
-                                                : 'inherit',
-                                            // transform: recentyUpdatedId === row._id
-                                            //     ? 'translateX(4px)' : 'translateX(0)',
-                                            '&:hover': {
-                                                backgroundColor: theme.palette.action.hover,
-                                            }
                                         }}
                                     >
                                         <TableCell padding="checkbox">
@@ -397,11 +349,12 @@ const Employees = () => {
                                                 checked={isItemSelected}
                                                 inputProps={{ 'aria-labelledby': labelId }}
                                                 onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleClick(event, row.employeeName);
-                                            }}
+                                                    event.stopPropagation();
+                                                    handleClick(event, row.employeeName);
+                                                }}
                                             />
                                         </TableCell>
+
                                         <TableCell
                                             component="th"
                                             id={labelId}
@@ -410,90 +363,49 @@ const Employees = () => {
                                         >
                                             {row.employeeName}
                                         </TableCell>
-                                        <TableCell align="left">{row.email}</TableCell>
-                                        <TableCell align="left">{row.currentComputer}</TableCell>
 
-                                        <TableCell 
-                                            align="left"
-                                            sx={{
-                                                width: '300px',
-                                                maxWidth: '300px',
-                                            }}
-                                        >
-                                            <Select
-                                                value={row.status}
-                                                onChange={async (e) => {
-                                                    const newStatus = e.target.value;
+                                        <TableCell>{row.email}</TableCell>
 
-                                                    try {
-                                                        const response = await fetch(`http://localhost:4000/employees/${row._id}`, {
-                                                            method: 'PATCH',
-                                                            headers: {
-                                                                'Content-Type': 'application/json',
-                                                            },
-                                                            body: JSON.stringify({ status: newStatus }),
-                                                        });
+                                        <TableCell>{row.currentComputer}</TableCell>
 
-                                                        if (!response.ok) {
-                                                            throw new Error(`Failed to update employee status: ${response.status}`);
-                                                        }
-
-                                                        // Update the row in the local state
-                                                        const updatedEmployees = employees.map(emp => {
-                                                            if (emp._id !== row._id) return emp;
-
-                                                            return {
-                                                                ...emp,
-                                                                status: newStatus,
-                                                                newComputer:
-                                                                newStatus === "Replaced"
-                                                                    ? emp.newComputer
-                                                                    : null,
-                                                            };
-                                                            });
-
-                                                            setEmployees(updatedEmployees);
-                                                            setRecentlyUpdatedId(row._id);
-
-                                                            // Clear the recently updated ID after a delay
-                                                            setTimeout(() => {
-                                                                setRecentlyUpdatedId(null);
-                                                            }, 600);
-
-                                                    } catch (error) {
-                                                        console.error('Error updating employee status:', error);
-                                                    }
-                                                }}
+                                        <TableCell>
+                                            <Chip
+                                                label={row.status}
                                                 sx={{
-                                                    color: statusColors[row.status] ?? 'inherit',
-                                                    transition: 'color 200ms ease',
-                                                    '& .MuiSelect-icon': {
-                                                        color: statusColors[row.status] ?? 'inherit',
-                                                        transition: 'color 200ms ease',
-                                                    },
+                                                    color: statusColors[row.status],
+                                                    borderColor: statusColors[row.status],
                                                 }}
-                                            >
-                                                <MenuItem value="Awaiting Action" sx={{ color: theme.palette.warning.main }}>Awaiting Action</MenuItem>
-                                                <MenuItem value="Pulled Without Replacement" sx={{ color: theme.palette.error.main }}>Pulled Without Replacement</MenuItem>
-                                                <MenuItem value="Replaced" sx={{ color: theme.palette.success.main }}>Replaced</MenuItem>
-                                            </Select>
+                                                variant="outlined"
+                                                size="small"
+                                            />
                                         </TableCell>
-                                        <TableCell align="left">{row.newComputer}</TableCell>
-                                        <TableCell align="left">{row.notes}</TableCell>
-                                        <TableCell align="left">
+
+                                        <TableCell>
+                                            {row.newComputer
+                                                ? row.newComputer.computerNumber
+                                                : '—'}
+                                        </TableCell>
+
+                                        <TableCell>{row.notes || '—'}</TableCell>
+
+                                        <TableCell align="right">
                                             <IconButton 
                                                 aria-label="edit" 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleRowEdit(row._id);}}
+                                                    handleRowEdit(row._id);
+                                                }}
+                                                size='small'
                                             >
                                                 <EditIcon />
                                             </IconButton>
-                                            <IconButton aria-label="delete"
+                                            <IconButton 
+                                                aria-label="delete"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleOpenDeleteDialog(row._id);
                                                 }}
+                                                size="small"
                                             >
                                                 <DeleteIcon />
                                             </IconButton>
@@ -502,7 +414,7 @@ const Employees = () => {
                                 );
                             })}
                             {emptyRows > 0 && (
-                                <TableRow style={{ height: (dense ? 33 : 53) * emptyRows }}>
+                                <TableRow style={{ height: 53 * emptyRows }}>
                                     <TableCell colSpan={6} />
                                 </TableRow>
                             )}
@@ -510,7 +422,7 @@ const Employees = () => {
                     </Table>
                 </TableContainer>
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[10, 25, 50]}
                     component="div"
                     count={employees.length}
                     rowsPerPage={rowsPerPage}
@@ -540,10 +452,6 @@ const Employees = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <FormControlLabel
-                control={<Switch checked={dense} onChange={handleChangeDense} />}
-                label="Dense padding"
-            />
         </Box>
     );
 };
