@@ -84,8 +84,9 @@ export const addNewEmployee = async (req, res) => {
 export const getEmployees = async (req, res) => {
     try {
         // Create employees array that retrieves all employees sorted by name (case insensitive)
-        const employees = await Employee.find().collation({ locale: 'en', strength: 2 }).sort({ employeeName: 1 })
-        
+        const employees = await Employee.find().collation({ locale: 'en', strength: 2 }).sort({ employeeName: 1 }).populate('newComputer', 'computerNumber')
+        console.log(JSON.stringify(employees, null, 2))
+
         // Respond with successful message and all employees
         res.status(200).json({
             message: `Employees retrieved successfully`,
