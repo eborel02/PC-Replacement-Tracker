@@ -43,6 +43,20 @@ export const createComputer = async (req, res) => {
             notes
         })
 
+        // Assign employee if status is Assigned
+        if (newComputer.assignedTo) {
+            const employee = await Employee.findById(newComputer.assignedTo)
+            if (!employee) {
+                return res.status(404).json({ message: `Employee not found` }) 
+            }
+            if (employee.newComputer) {
+                return res.status(400).json({ message: `Employee already has a computer assigned` })
+            }
+            employee.newComputer = newComputer._id
+            employee.status = 'Replaced'
+            await employee.save()
+        }
+
         const savedComputer = await newComputer.save()
         res.status(201).json({
             message: `Computer created successfully`,
@@ -133,60 +147,6 @@ export const getAvailableEmployees = async (req, res) => {
     }
 };
 
-export const assignComputer = async (req, res) => {
-    const { id } = req.params; // computer ID
-    const { employeeID } = req.body;
-
-    try {
-        const computer = await Computer.findById(id);
-        if (!computer) return res.status(404).json({ message: 'Computer not found' });
-
-        const employee = await Employee.findById(employeeID);
-        if (!employee) return res.status(404).json({ message: 'Employee not found' });
-
-        // If employee already has a newComputer, reject
-        if (employee.newComputer) {
-            return res.status(400).json({ message: 'Employee already has a computer assigned' });
-        }
-
-        computer.assignedTo = employeeID;
-        computer.status = 'Assigned';
-        await computer.save();
-
-        employee.newComputer = computer._id;
-        await employee.save();
-
-        res.status(200).json({ message: 'Computer assigned successfully', computer, employee });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error', error: err.message });
-    }
-};
-
-
-export const unassignComputer = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const computer = await Computer.findById(id).populate('assignedTo');
-        if (!computer) return res.status(404).json({ message: 'Computer not found' });
-
-        const employee = computer.assignedTo;
-        if (employee) {
-            employee.newComputer = null;
-            await employee.save();
-        }
-
-        computer.assignedTo = null;
-        await computer.save();
-
-        res.status(200).json({ message: 'Computer unassigned successfully', computer, employee });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error', error: err.message });
-    }
-};
-
 /*================================/
 /    METHOD TO UPDATE COMPUTER    /
 /================================*/
@@ -194,9 +154,6 @@ export const updateComputer = async (req, res) => {
     try {
         const { computerID } = req.params
         const updateData = req.body
-
-        console.log('PARAM computerID:', computerID);
-        console.log('BODY updateData:', updateData);
 
         if (!mongoose.Types.ObjectId.isValid(computerID)) {
             return res.status(400).json({ message: `Invalid computer ID` });
@@ -219,7 +176,6 @@ export const updateComputer = async (req, res) => {
 
         // Unassign previous employee if status is changing from Assigned to something else
         if (updateData.status !== 'Assigned' && updatedComputer.assignedTo) {
-            console.log('Unassigning computer from employee:', updatedComputer.assignedTo);
             const previousEmployee = await Employee.findById(updatedComputer.assignedTo._id);
             if (previousEmployee) {
                 previousEmployee.newComputer = null;
@@ -228,7 +184,6 @@ export const updateComputer = async (req, res) => {
             }
             updatedComputer.assignedTo = null
             updatedComputer.status = updateData.status || 'Available'
-            console.log('Computer unassigned from employee:', updatedComputer)
         }
 
         // Assign new employee if status is changing to Assigned

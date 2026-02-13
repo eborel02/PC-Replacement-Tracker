@@ -121,12 +121,8 @@ const EditEmployees = () => {
                 rows={4}
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                <Button variant="outlined" onClick={() => navigate('/employees')}>
-                    Cancel
-                </Button>
-                <Button variant="contained" onClick={handleSave}>
-                    Save Changes
-                </Button>
+                <Button variant="outlined" onClick={() => navigate('/employees')} sx={{ mt: 2 }}>Cancel</Button>
+                <Button variant="contained" onClick={handleSave} sx={{ mt: 2 }}>Save Changes</Button>
             </Box>
         </Box>
     )
