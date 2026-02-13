@@ -112,13 +112,9 @@ const CreateEmployee = () => {
                 rows={4}
             />
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-                <Button variant="outlined" onClick={() => navigate('/employees')} sx={{ mt: 2 }}>
-                    Cancel
-                </Button>
-                <Button variant="contained" onClick={handleSubmit} sx={{ mt: 2 }}>
-                    Create Employee
-                </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                <Button variant="outlined" onClick={() => navigate('/employees')} sx={{ mt: 2 }}>Cancel</Button>
+                <Button variant="contained" onClick={handleSubmit} sx={{ mt: 2 }}>Create Employee</Button>
             </Box>
         </Box>
     );

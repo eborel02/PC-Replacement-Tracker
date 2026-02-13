@@ -152,7 +152,6 @@ const EditComputer = () => {
                 
                 {computer.status === 'Assigned' && (
                     <FormControl fullWidth margin="normal">
-                        {/* TODO: Refactor employee dropdown */}
                         <InputLabel>Assigned To</InputLabel>
                         <Select
                             name="assignedTo"
@@ -182,11 +181,9 @@ const EditComputer = () => {
                 />
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                    <Button variant="outlined" onClick={() => navigate('/computers')}>Cancel</Button>
-                <Button variant="contained" onClick={handleSubmit}>
-                    Save Changes
-                </Button>
-            </Box>
+                    <Button variant="outlined" onClick={() => navigate('/computers')} sx={{ mt: 2 }}>Cancel</Button>
+                    <Button variant="contained" onClick={handleSubmit} sx={{ mt: 2 }}>Save Changes</Button>
+                </Box>
             </form>
         </Box>
     );
