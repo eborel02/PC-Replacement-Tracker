@@ -19,3 +19,8 @@
 - Made some small format changes to buttons in edit/create pages
 - Added a dropdown menu for available computers in EditEmployees.jsx
 - Refactored both Computers.jsx and Employees.jsx to maintain better consistency
+
+## What's Next
+- Start on Dashboard page to show progress metrics
+- Clean up codebase and add more comments for better readability
+- Add a bit more styling to the UI for a more professional, responsive feel
