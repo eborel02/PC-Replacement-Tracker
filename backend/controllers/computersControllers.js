@@ -155,6 +155,7 @@ export const updateComputer = async (req, res) => {
         const { computerID } = req.params
         const updateData = req.body
 
+        // Validate computer ID
         if (!mongoose.Types.ObjectId.isValid(computerID)) {
             return res.status(400).json({ message: `Invalid computer ID` });
         }
@@ -170,7 +171,7 @@ export const updateComputer = async (req, res) => {
         }
 
         // If trying to set to available but has assigned employee, reject
-        if (updateData.status === 'Available' && updateData.assignedTo) {
+        if (updateData.status !== 'Assigned' && updateData.assignedTo) {
             return res.status(400).json({ message: `Available computers cannot have an assigned employee` })
         }
 

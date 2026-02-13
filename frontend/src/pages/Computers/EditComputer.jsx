@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import {
@@ -15,16 +15,15 @@ import {
 const EditComputer = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [error, setError] = useState(null);
+    const [originalAssignedTo, setOriginalAssignedTo] = useState(null);
+    const [employees, setEmployees] = useState([]);
     const [computer, setComputer] = useState({
         computerNumber: '',
         status: 'Available',
         assignedTo: '',
         notes: '',
     });
-
-    const [originalAssignedTo, setOriginalAssignedTo] = useState(null);
-
-    const [employees, setEmployees] = useState([]);
 
     useEffect(() => {
         const fetchComputerAndEmployees = async () => {
@@ -61,9 +60,6 @@ const EditComputer = () => {
         fetchComputerAndEmployees();
     }, [id]);
 
-
-    const [error, setError] = useState(null);
-
     const selectableEmployees = useMemo(() => {
         if (!Array.isArray(employees)) return [];
 
@@ -93,7 +89,7 @@ const EditComputer = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
 
         try {
@@ -125,7 +121,7 @@ const EditComputer = () => {
                 </Typography>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSave}>
                 <TextField
                     label="Computer Number"
                     name="computerNumber"
@@ -182,7 +178,7 @@ const EditComputer = () => {
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                     <Button variant="outlined" onClick={() => navigate('/computers')} sx={{ mt: 2 }}>Cancel</Button>
-                    <Button variant="contained" onClick={handleSubmit} sx={{ mt: 2 }}>Save Changes</Button>
+                    <Button variant="contained" onClick={handleSave} sx={{ mt: 2 }}>Save Changes</Button>
                 </Box>
             </form>
         </Box>
