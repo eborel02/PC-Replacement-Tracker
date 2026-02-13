@@ -8,6 +8,7 @@ import EditEmployee from "./pages/Employees/EditEmployees";
 import CreateEmployee from "./pages/Employees/CreateEmployee";
 import Computers from "./pages/Computers/Computers";
 import EditComputer from "./pages/Computers/EditComputer";
+import CreateComputer from "./pages/Computers/CreateComputer";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./theme/theme.jsx";
 
@@ -25,6 +26,7 @@ ReactDOM.createRoot(root).render(
           <Route path="employees/new" element={<CreateEmployee />} />
           <Route path="computers" element={<Computers />} />
           <Route path="computers/:id/edit" element={<EditComputer />} />
+          <Route path="computers/new" element={<CreateComputer />} />
         </Route>
       </Routes>
     </BrowserRouter>
