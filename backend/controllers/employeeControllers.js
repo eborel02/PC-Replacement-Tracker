@@ -249,11 +249,9 @@ export const updateEmployeePartial = async (req, res) => {
             })
         }
 
-        const employee = await Employee.findById(employeeID)
+        const employee = await Employee.findById(employeeID).populate('newComputer');
         if (!employee) {
-            return res.status(404).json({
-                message: `Employee not found`
-            })
+            return res.status(404).json({ message: `Employee not found`});
         }
 
         const oldComputerID = employee.newComputer;
@@ -278,48 +276,64 @@ export const updateEmployeePartial = async (req, res) => {
             }
         }
 
-        // If assigning a new computer
-        if (updates.newComputer && updates.newComputer !== oldComputerID) {
-            // Unassign old computer
-            if (oldComputerID) {
-                const oldComputer = await Computer.findById(oldComputerID)
-                if (oldComputer) {
-                    oldComputer.status = 'Available'
-                    oldComputer.assignedTo = null
-                    await oldComputer.save()
-                }
-            }
-            
-            // Assign new computer
-            const newComputer = await Computer.findById(updates.newComputer)
-            if (!newComputer) {
-                return res.status(404).json({
-                    message: `New computer not found`
-                })
-            }
+        // If set to Replaced without a new computer, reject
+        if (updates.status === 'Replaced' && !updates.newComputer) {
+            return res.status(400).json({
+                message: `Status cannot be set to Replaced without assigning a new computer.`
+            })
+        }
 
-            newComputer.status = 'Assigned'
-            newComputer.assignedTo = employeeID
-            await newComputer.save()
+        // If trying to set to Awaiting Action or something other than Replaced but has assigned computer, reject
+        if (updates.status !== 'Replaced' && updates.newComputer) {
+            return res.status(400).json({
+                message: `Employees with an assigned new computer must have status of Replaced. Please change status or unassign computer.`
+            })
+        }
+
+        // Unassign old computer if status is changing from Replaced to something else
+        if (updates.status !== 'Replaced' && employee.newComputer) {
+            const previousComputer = await Computer.findById(employee.newComputer._id);
+            if (previousComputer) {
+                previousComputer.status = 'Available';
+                previousComputer.assignedTo = null;
+                await previousComputer.save();
+            }
+            employee.newComputer = null
+            employee.status = updates.status || 'Awaiting Action'
+        }
+
+        // Assign new computer if status is changing to Replaced
+        if (updates.status === 'Replaced' && updates.newComputer) {
+            const computer = await Computer.findById(updates.newComputer);
+            if (!computer) {
+                return res.status(404).json({ message: `Computer not found` });
+            }
+            if (computer.assignedTo && computer.assignedTo.toString() !== employeeID) {
+                return res.status(400).json({ message: `Computer already assigned to another employee` });
+            }
+            computer.assignedTo = employeeID
+            computer.status = 'Assigned'
+            await computer.save()
 
             employee.newComputer = updates.newComputer
-            employee.status = 'Replaced'    
+            employee.status = 'Replaced'
+            await employee.save()
         }
 
-        if (updates.status && updates.status !== 'Replaced' && employee.status === 'Replaced') {
-            if (oldComputerID) {
-                const oldComputer = await Computer.findById(oldComputerID)
-                if (oldComputer) {
-                    oldComputer.status = 'Available'
-                    oldComputer.assignedTo = null
-                    await oldComputer.save()
-                }
-            }
-            employee.newComputer = null;
+        // Apply other updates without affecting assignment logic
+        if (updates.employeeName !== undefined) {
+            employee.employeeName = updates.employeeName;
+        }
+        if (updates.email !== undefined) {
+            employee.email = updates.email;
+        }
+        if (updates.currentComputer !== undefined) {
+            employee.currentComputer = updates.currentComputer;
+        }
+        if (updates.notes !== undefined) {
+            employee.notes = updates.notes;
         }
 
-        // Apply other updates
-        Object.assign(employee, updates)
         await employee.save();
 
         // If successful, send success message and return updated employee

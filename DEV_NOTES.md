@@ -7,6 +7,15 @@
 - Refactored computers table to have more functionality and employees table to resemble computers table styling
 
 ## What's Next
-- Add Create and Delete functions to computers and their respective pages\routing
+- Add Create function to computers
 - Add dropdown menu in employee edit page to select available computers
 - Start on Dashboard page to show progress metrics
+
+# Current Progress (2/13/2026)
+
+## What I finished
+- Implemented the create function for computers
+- Modified createComputer controller method to update employee if computer was assigned on creation
+- Made some small format changes to buttons in edit/create pages
+- Added a dropdown menu for available computers in EditEmployees.jsx
+- Refactored both Computers.jsx and Employees.jsx to maintain better consistency
