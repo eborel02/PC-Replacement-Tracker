@@ -212,6 +212,9 @@ export const updateComputer = async (req, res) => {
         if (updateData.computerNumber !== undefined) {
             updatedComputer.computerNumber = updateData.computerNumber;
         }
+        if (updateData.status && updateData.status !== 'Assigned') {
+            updatedComputer.status = updateData.status;
+        }
         
         await updatedComputer.save()
 
