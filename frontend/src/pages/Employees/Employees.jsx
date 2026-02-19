@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { use, useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { visuallyHidden } from '@mui/utils';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import {
     Box,
@@ -29,7 +30,9 @@ import {
     DialogTitle,
     DialogContent,
     DialogContentText,
-    DialogActions
+    DialogActions,
+    Menu,
+    MenuItem,
 } from "@mui/material";
 import PropTypes from 'prop-types';
 
@@ -124,58 +127,109 @@ EnhancedTableHead.propTypes = {
 }
 
 function EnhancedTableToolbar(props) {
-  const { numSelected, onAddEmployee } = props;
-  
-  return (
-    <Toolbar
-      sx={[
-        {
-          pl: { sm: 2 },
-          pr: { xs: 1, sm: 1 },
-        },
-        numSelected > 0 && {
-          bgcolor: (theme) =>
-            alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
-        },
-      ]}
-    >
-        {numSelected > 0 ? (
-            <Typography
-                sx={{ flex: '1 1 100%' }}
-                color="inherit"
-                variant = "subtitle1"
-                component="div"
-            >
-                {numSelected} selected
-            </Typography>
-        ) : (
-            <Typography
-                sx={{ flex: '1 1 100%' }}
-                variant="h6"
-                id="tableTitle"
-                component="div"
-            >
-                Employees
-            </Typography>
-        )}
-        {numSelected > 0 ? (
-            <Tooltip title="Delete">
-                <IconButton>
-                <DeleteIcon />
-                </IconButton>
-            </Tooltip>
-            ) : (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-                <Tooltip title="Add Employee">
-                <IconButton color="primary" onClick={onAddEmployee}>
-                    <AddIcon />
-                </IconButton>
-                </Tooltip>
-            </Box>
-        )}
+    const { numSelected, onAddEmployee, statusFilter } = props;
+    const [anchorEl, setAnchorEl] = useState(null);
+    const navigate = useNavigate();
 
-    </Toolbar>
-  );
+    const handleFilterClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleFilterClose = () => {
+        setAnchorEl(null);
+    }
+
+    const open = Boolean(anchorEl);
+  
+    return (
+        <Toolbar
+        sx={[
+            {
+            pl: { sm: 2 },
+            pr: { xs: 1, sm: 1 },
+            },
+            numSelected > 0 && {
+            bgcolor: (theme) =>
+                alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
+            },
+        ]}
+        >
+            {numSelected > 0 ? (
+                <Typography
+                    sx={{ flex: '1 1 100%' }}
+                    color="inherit"
+                    variant = "subtitle1"
+                    component="div"
+                >
+                    {numSelected} selected
+                </Typography>
+            ) : (
+                <Typography
+                    sx={{ flex: '1 1 100%' }}
+                    variant="h6"
+                    id="tableTitle"
+                    component="div"
+                >
+                    Employees
+                </Typography>
+            )}
+            {numSelected > 0 ? (
+                <Tooltip title="Delete">
+                    <IconButton>
+                    <DeleteIcon />
+                    </IconButton>
+                </Tooltip>
+                ) : (
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Tooltip title="Filter by Status">
+                        <IconButton onClick={handleFilterClick} color={statusFilter ? 'primary' : 'default'}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Add Employee">
+                    <IconButton color="primary" onClick={onAddEmployee}>
+                        <AddIcon />
+                    </IconButton>
+                    </Tooltip>
+                </Box>
+            )}
+
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleFilterClose}
+                sx={{ fontSize: '0.9rem' }}
+            >
+                <MenuItem onClick={() => {
+                    navigate(`/employees`);
+                    handleFilterClose();
+                }}>
+                    All
+                </MenuItem>
+
+                <MenuItem onClick={() => {
+                    navigate(`/employees?status=Awaiting%20Action`);
+                    handleFilterClose();
+                }}>
+                    Awaiting Action
+                </MenuItem>
+
+                <MenuItem onClick={() => {
+                    navigate(`/employees?status=Pulled%20Without%20Replacement`);
+                    handleFilterClose();
+                }}>
+                    Pulled Without Replacement
+                </MenuItem>
+
+                <MenuItem onClick={() => {
+                    navigate(`/employees?status=Replaced`);
+                    handleFilterClose();
+                }}>
+                    Replaced
+                </MenuItem>
+            </Menu>
+        </Toolbar>
+    );
 }
 
 EnhancedTableToolbar.propTypes = {
@@ -188,6 +242,20 @@ EnhancedTableToolbar.propTypes = {
 const Employees = () => {
     const theme = useTheme();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [statusFilter, setStatusFilter] = useState(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const status = params.get('status');
+
+        if (status) {
+            setStatusFilter(status);
+        } else {
+            setStatusFilter(null);
+        }
+    })
+
     // FETCHING EMPLOYEES FROM BACKEND
     const [employees, setEmployees] = useState([]);
     const fetchEmployees = async () => {
@@ -202,6 +270,10 @@ const Employees = () => {
     useEffect(() => {
         fetchEmployees();
     }, [])
+
+    const filteredEmployees = employees.filter(employee => 
+        statusFilter ? employee.status === statusFilter : true
+    );
 
     const statusColors = {
         "Awaiting Action": theme.palette.warning.main,
@@ -298,11 +370,11 @@ const Employees = () => {
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - employees.length) : 0;
 
     const visibleRows = useMemo(() => {
-        return employees
+        return filteredEmployees
             .slice()
             .sort(getComparator(order, orderBy))
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-    }, [employees, order, orderBy, page, rowsPerPage]);
+    }, [filteredEmployees, order, orderBy, page, rowsPerPage]);
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -310,10 +382,20 @@ const Employees = () => {
                 Employees
             </Typography>
 
+            {statusFilter && (
+                <Chip
+                    label={`Filtered: ${statusFilter}`}
+                    onDelete={() => navigate(`/employees`)}
+                    color="primary"
+                    sx={{ mb: 2 }}
+                />
+            )}
+
+
             <Paper>
-                <EnhancedTableToolbar numSelected={selected.length} onAddEmployee={() => navigate("/employees/new")} />
+                <EnhancedTableToolbar numSelected={selected.length} onAddEmployee={() => navigate("/employees/new")} statusFilter={statusFilter} setStatusFilter={setStatusFilter}/>
                 <TableContainer>
-                    <Table>
+                    <Table stickyHeader aria-label="employee table">
                         <EnhancedTableHead
                             numSelected={selected.length}
                             order={order}

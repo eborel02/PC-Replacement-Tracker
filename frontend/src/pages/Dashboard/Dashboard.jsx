@@ -23,7 +23,7 @@ const Dashboard = () => {
         { title: 'Total Computers', value: dashboardData?.computers?.total || 0, color: '#1976D2' },
         { title: 'Assigned', value: dashboardData?.computers?.assigned || 0, color: theme.palette.success.main },
         { title: 'Available', value: dashboardData?.computers?.available || 0, color: theme.palette.warning.main },
-        { title: 'In Maintenance', value: dashboardData?.computers?.maintenance || 0, color: theme.palette.error.main }, 
+        { title: 'Maintenance', value: dashboardData?.computers?.maintenance || 0, color: theme.palette.error.main }, 
     ]
 
     const statusColorMap = { 
@@ -66,13 +66,23 @@ const Dashboard = () => {
             <Grid container spacing={3}>
                 {employeeStats.map((stat) => (
                     <Grid key={stat.title} size={{ xs:12, md: 3 }}>
-                        <StatCard title={stat.title} value={stat.value} color={stat.color} />
+                        <StatCard 
+                            title={stat.title} 
+                            value={stat.value} 
+                            color={stat.color} 
+                            onClick={() => {
+                                if (stat.title !== 'Total Employees') {
+                                    navigate(`/employees?status=${encodeURIComponent(stat.title)}`);
+                                } else {
+                                    navigate('/employees');
+                                }
+                            }} />
                     </Grid>
                 ))}
             </Grid>
             </Box>
 
-            <Box sx={{ mt:3 }}>
+            <Box sx={{ mt:3}}>
                 <Typography variant="h6" fontWeight="bold" textAlign="center">
                     Overall Completion Rate:
                 </Typography>
@@ -90,7 +100,17 @@ const Dashboard = () => {
             <Grid container spacing={3}>
                 {computerStats.map((stat) => (
                     <Grid key={stat.title} size={{ xs:12, md: 3 }}>
-                        <StatCard title={stat.title} value={stat.value} color={stat.color} />
+                        <StatCard 
+                            title={stat.title} 
+                            value={stat.value} 
+                            color={stat.color} 
+                            onClick={() => {
+                                if (stat.title !== 'Total Computers') {
+                                    navigate(`/computers?status=${encodeURIComponent(stat.title)}`);
+                                } else {
+                                    navigate(`/computers`);
+                                }
+                            }} />
                     </Grid>
                 ))}
             </Grid>

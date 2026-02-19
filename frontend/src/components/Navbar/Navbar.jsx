@@ -20,7 +20,11 @@ const Navbar = () => {
         variant="permanent"
         anchor="left"
       >
-        <Toolbar />
+        <Toolbar>
+          <NavLink to="/dashboard" style={{ textDecoration: 'none' }}>
+            <ListItemText primary="PC Replacement Tracker" sx={{ color: '#fff', fontWeight: 'bold' }} />
+          </NavLink>
+        </Toolbar>
         <Divider />
         
         <List>

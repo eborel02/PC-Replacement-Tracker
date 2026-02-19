@@ -1,11 +1,12 @@
 import { Box, Typography } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 
-const StatCard = ({ title, value, color = '#1976d2' }) => {
+const StatCard = ({ title, value, color = '#1976d2', onClick }) => {
     const theme = useTheme();
 
     return (
         <Box
+            onClick={onClick}
             sx={{
                 p: 2,
                 bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.8) : theme.palette.background.paper,
@@ -17,6 +18,12 @@ const StatCard = ({ title, value, color = '#1976d2' }) => {
                 justifyContent: "center",
                 alignItems: "center",
                 minHeight: 120,
+                cursor: onClick ? 'pointer' : 'default',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': onClick ? {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 6,
+                } : {},
             }}
         >
             <Typography variant="subtitle2" color="textSecondary">
