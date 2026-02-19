@@ -4,6 +4,7 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import employeeRoutes from './routes/employeeRoutes.js'
 import computersRoutes from './routes/computersRoutes.js'
+import dashboardRoutes from './routes/dashboardRoutes.js'
 
 const app = express();
 const PORT = 4000;
@@ -32,6 +33,7 @@ app.use((req, res, next) => {
 
 app.use('/employees', employeeRoutes)
 app.use('/computers', computersRoutes)
+app.use('/dashboard', dashboardRoutes)
 
 app.get('/', (req, res) => {
     res.send('Welcome to the PC Replacement Management System API')

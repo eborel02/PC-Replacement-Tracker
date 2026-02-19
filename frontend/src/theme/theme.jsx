@@ -18,7 +18,7 @@ const theme = createTheme({
         },
 
         error: {
-            main: '#D66660',
+            main: '#f44336',
             contrastText: '#4C100D',
             dark: '#661511',     // ErrorContainer
             light: '#E6ACA9',    // OnErrorContainer
