@@ -24,3 +24,9 @@
 - Start on Dashboard page to show progress metrics
 - Clean up codebase and add more comments for better readability
 - Add a bit more styling to the UI for a more professional, responsive feel
+
+# Current Progress (2/19/2026)
+
+## What I finished
+- Created dashboard controller and route
+- 
