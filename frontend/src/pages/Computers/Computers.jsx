@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { alpha, useTheme } from "@mui/material/styles";
 import { visuallyHidden } from "@mui/utils";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import {
     Box,
@@ -29,7 +30,9 @@ import {
     DialogTitle,
     DialogContent,
     DialogContentText,
-    DialogActions
+    DialogActions,
+    Menu,
+    MenuItem,
 } from "@mui/material";
 import PropTypes from 'prop-types';
 
@@ -122,7 +125,19 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableToolbar(props) {
-    const { numSelected, onAddComputer } = props;
+    const { numSelected, onAddComputer, statusFilter } = props;
+    const [anchorEl, setAnchorEl] = useState(null);
+    const navigate = useNavigate();
+
+    const handleFilterClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleFilterClose = () => {
+        setAnchorEl(null);
+    }
+
+    const open = Boolean(anchorEl);
 
     return (
         <Toolbar 
@@ -164,6 +179,11 @@ function EnhancedTableToolbar(props) {
                 </Tooltip>
             ) : (
                 <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Tooltip title="Filter by Status">
+                        <IconButton onClick={handleFilterClick} color={statusFilter ? 'primary' : 'default'}>
+                            <FilterListIcon />
+                        </IconButton>
+                    </Tooltip>
                     <Tooltip title="Add Computer">
                         <IconButton onClick={onAddComputer}>
                             <AddIcon />
@@ -171,6 +191,41 @@ function EnhancedTableToolbar(props) {
                     </Tooltip>
                 </Box>
             )}
+            
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleFilterClose}
+                sx={{ fontSize: '0.9rem' }}
+            >
+                <MenuItem onClick={() => {
+                    navigate(`/computers`);
+                    handleFilterClose();
+                }}>
+                    All
+                </MenuItem>
+
+                <MenuItem onClick={() => {
+                    navigate(`/computers?status=Available`);
+                    handleFilterClose();
+                }}>
+                    Available
+                </MenuItem>
+
+                <MenuItem onClick={() => {
+                    navigate(`/computers?status=Maintenance`);
+                    handleFilterClose();
+                }}>
+                    Maintenance
+                </MenuItem>
+
+                <MenuItem onClick={() => {
+                    navigate(`/computers?status=Assigned`);
+                    handleFilterClose();
+                }}>
+                    Assigned
+                </MenuItem>
+            </Menu>
         </Toolbar>
     );
 }
@@ -182,6 +237,20 @@ EnhancedTableToolbar.propTypes = {
 const Computers = () => {
     const theme = useTheme();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [statusFilter, setStatusFilter] = useState(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const status = params.get('status');
+
+        if (status) {
+            setStatusFilter(status);
+        } else {
+            setStatusFilter(null);
+        }
+    })
+
     // FETCHING COMPUTERS FROM BACKEND
     const [computers, setComputers] = useState([]);
     const fetchComputer = async () => {
@@ -197,9 +266,13 @@ const Computers = () => {
         fetchComputer();
     }, []);
 
+    const filteredComputers = computers.filter(computer => 
+        statusFilter ? computer.status === statusFilter : true
+    );
+
     const statusColors = {
-        Available: theme.palette.success.main,
-        Assigned: theme.palette.warning.main,
+        Available: theme.palette.warning.main,
+        Assigned: theme.palette.success.main,
         Maintenance: theme.palette.error.main,
     };
 
@@ -291,11 +364,11 @@ const Computers = () => {
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - computers.length) : 0;
 
     const visibleRows = useMemo(() => {
-        return computers
+        return filteredComputers
             .slice()
             .sort(getComparator(order, orderBy))
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-    }, [computers, order, orderBy, page, rowsPerPage]);
+    }, [filteredComputers, order, orderBy, page, rowsPerPage]);
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -303,8 +376,17 @@ const Computers = () => {
                 Computer Inventory
             </Typography>
 
+            {statusFilter && (
+                <Chip
+                    label={`Filtered: ${statusFilter}`}
+                    onDelete={() => navigate(`/computers`)}
+                    color="primary"
+                    sx={{ mb: 2 }}
+                />
+            )}
+
             <Paper>
-                <EnhancedTableToolbar numSelected={selected.length} onAddComputer={() => navigate('/computers/new')} />
+                <EnhancedTableToolbar numSelected={selected.length} onAddComputer={() => navigate('/computers/new')} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
                 <TableContainer>
                     <Table>
                         <EnhancedTableHead
