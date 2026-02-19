@@ -395,7 +395,7 @@ const Employees = () => {
             <Paper>
                 <EnhancedTableToolbar numSelected={selected.length} onAddEmployee={() => navigate("/employees/new")} statusFilter={statusFilter} setStatusFilter={setStatusFilter}/>
                 <TableContainer>
-                    <Table stickyHeader aria-label="employee table">
+                    <Table>
                         <EnhancedTableHead
                             numSelected={selected.length}
                             order={order}
