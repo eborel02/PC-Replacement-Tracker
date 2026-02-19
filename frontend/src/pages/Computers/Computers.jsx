@@ -200,7 +200,7 @@ const Computers = () => {
     const statusColors = {
         Available: theme.palette.success.main,
         Assigned: theme.palette.warning.main,
-        'Under Maintenance': theme.palette.error.main,
+        Maintenance: theme.palette.error.main,
     };
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

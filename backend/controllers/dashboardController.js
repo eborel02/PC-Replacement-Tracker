@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { EmployeeSchema } from '../models/Employee.js';
-import { ComputerSchema } from '../models/Computer.js';
+import { EmployeeSchema } from '../models/employeeModels.js';
+import { ComputerSchema } from '../models/computersModels.js';
 
 const Employee = mongoose.models.Employee || mongoose.model('Employee', EmployeeSchema);
 const Computer = mongoose.models.Computer || mongoose.model('Computer', ComputerSchema);
@@ -31,6 +31,10 @@ export const getDashboardData = async (req, res) => {
             totalEmployees === 0
             ? 0
             : (((replaced + pulled) / totalEmployees) * 100).toFixed(1);
+            console.log('Completion Rate:', completionRate);
+            console.log('Total Employees:', totalEmployees);
+            console.log('Replaced:', replaced);
+            console.log('Pulled:', pulled);
 
         const shortage = 
             awaiting > available

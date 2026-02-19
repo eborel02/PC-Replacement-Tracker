@@ -17,7 +17,7 @@ const CreateEmployee = () => {
         email : '',
         currentComputer: '',
         status: '',
-        newComputer: '',
+        newComputer: null,
         notes: '',
     });
 
