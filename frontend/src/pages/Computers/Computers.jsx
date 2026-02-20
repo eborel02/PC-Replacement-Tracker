@@ -33,6 +33,8 @@ import {
     DialogActions,
     Menu,
     MenuItem,
+    Snackbar,
+    Alert,
 } from "@mui/material";
 import PropTypes from 'prop-types';
 
@@ -281,11 +283,25 @@ const Computers = () => {
 
     const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
 
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
     const [order, setOrder] = useState('asc');
     const [orderBy, setOrderBy] = useState('computerNumber');
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const showSnackbar = (message) => {
+        setSnackbarMessage(message);
+        setSnackbarOpen(true);
+    };
+
+    useEffect(() => {
+        if (location.state?.successMessage) {
+            showSnackbar(location.state.successMessage);
+        }
+    }, [location.state]);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -578,6 +594,16 @@ const Computers = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
