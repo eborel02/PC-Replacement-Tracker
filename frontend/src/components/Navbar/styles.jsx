@@ -1,3 +1,5 @@
+/* File containing styles for the main navigation bar */
+
 export const navBarStyles = {
     drawer: {
         width: 240,

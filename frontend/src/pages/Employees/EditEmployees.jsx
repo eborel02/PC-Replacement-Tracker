@@ -29,6 +29,7 @@ const EditEmployees = () => {
         notes: '',
     });
 
+    // Form state is separate to allow for validation errors
     const [formData, setFormData] = useState({
         employeeName: '',
         email: '',
@@ -39,6 +40,7 @@ const EditEmployees = () => {
     });
     const [errors, setErrors] = useState({});
 
+    // Fetch employee and computers on mount
     useEffect(() => {
         const fetchEmployeeAndComputers = async () => {
             try {
@@ -77,6 +79,7 @@ const EditEmployees = () => {
         fetchEmployeeAndComputers();
     }, [id]);
 
+    // Generate list of selectable computers based on status and current assignment
     const selectableComputers = useMemo(() => {
         if (!Array.isArray(computers)) return [];
 
@@ -95,6 +98,7 @@ const EditEmployees = () => {
         return list;
     }, [computers, originalAssignedTo]);
 
+    // Handle form field changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -109,6 +113,7 @@ const EditEmployees = () => {
         }));
     };
 
+    // Validate form fields before submission
     const validateForm = () => {
         const newErrors = {};
 
@@ -132,6 +137,7 @@ const EditEmployees = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    // Handle form submission to update employee
     const handleSave = async (e) => {
         if (!validateForm()) {
             return;

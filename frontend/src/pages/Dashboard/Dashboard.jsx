@@ -6,12 +6,15 @@ import StatCard from '../../components/Dashboard/StatCard';
 import SemiCircleProgress from '../../components/Dashboard/SemiCircleProgress';
 
 const Dashboard = () => {
+    // Dashboard component to display key metrics and operational status
     const theme = useTheme();
     const panelBgColor = "#313144"; // Slightly lighter than the default background for better contrast
     const navigate = useNavigate();
 
+    // State to hold dashboard data fetched from the backend
     const [dashboardData, setDashboardData] = useState(null);
 
+    // Define the statistics for employees and computers based on the fetched dashboard data
     const employeeStats = [
         { title: 'Total Employees', value: dashboardData?.employees?.total || 0, color: '#1976D2' },
         { title: 'Replaced', value: dashboardData?.employees?.replaced || 0, color: theme.palette.success.main },
@@ -19,6 +22,7 @@ const Dashboard = () => {
         { title: 'Pulled Without Replacement', value: dashboardData?.employees?.pulled || 0, color: theme.palette.error.main }, 
     ]
 
+    // Define the statistics for computers based on the fetched dashboard data
     const computerStats = [
         { title: 'Total Computers', value: dashboardData?.computers?.total || 0, color: '#1976D2' },
         { title: 'Assigned', value: dashboardData?.computers?.assigned || 0, color: theme.palette.success.main },
@@ -26,6 +30,7 @@ const Dashboard = () => {
         { title: 'Maintenance', value: dashboardData?.computers?.maintenance || 0, color: theme.palette.error.main }, 
     ]
 
+    // Map to associate each status with a specific color for consistent styling across the dashboard
     const statusColorMap = { 
         'Total Employees': '#1976D2',
         'Total Computers': '#1976D2',
@@ -37,6 +42,7 @@ const Dashboard = () => {
         'In Maintenance': theme.palette.error.main,
     }
     
+    // Fetch dashboard data from the backend when the component mounts
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
