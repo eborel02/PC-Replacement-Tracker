@@ -2,11 +2,13 @@ import mongoose from 'mongoose';
 import { EmployeeSchema } from '../models/employeeModels.js';
 import { ComputerSchema } from '../models/computersModels.js';
 
+// Use existing models if they exist, otherwise create new ones
 const Employee = mongoose.models.Employee || mongoose.model('Employee', EmployeeSchema);
 const Computer = mongoose.models.Computer || mongoose.model('Computer', ComputerSchema);
 
 export const getDashboardData = async (req, res) => {
     try {
+        // Use Promise.all to fetch all counts in parallel for better performance
         const [
             totalEmployees,
             replaced,
@@ -27,6 +29,7 @@ export const getDashboardData = async (req, res) => {
             Computer.countDocuments({ status: 'Maintenance' })
         ]);
 
+        // Calculate completion rate and shortage
         const completionRate = 
             totalEmployees === 0
             ? 0
@@ -41,6 +44,7 @@ export const getDashboardData = async (req, res) => {
             ? awaiting - available
             : 0;
 
+        // Return the dashboard data as JSON
         res.json({
             employees: {
                 total: totalEmployees,

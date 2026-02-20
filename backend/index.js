@@ -30,7 +30,7 @@ app.use((req, res, next) => {
     next();
 });
 
-
+// routes
 app.use('/employees', employeeRoutes)
 app.use('/computers', computersRoutes)
 app.use('/dashboard', dashboardRoutes)

@@ -11,6 +11,7 @@ const Computer = mongoose.models.Computer || mongoose.model('Computer', Computer
 export const addNewEmployee = async (req, res) => {
     // Try-catch statement to validate that only allowed fields are assigned
     try {
+        // Destructure fields from request body
         const {
             employeeName,
             email,
@@ -20,7 +21,7 @@ export const addNewEmployee = async (req, res) => {
             notes
         } = req.body
 
-        // checks if email is already in use so duplicate employees are not added
+        // Checks if email is already in use so duplicate employees are not added
         const existing = await Employee.findOne({ email })
         if (existing && existing.email) {
             return res.status(400).json({
@@ -28,7 +29,7 @@ export const addNewEmployee = async (req, res) => {
             })
         }
 
-        // checks if currentComputer is already assigned to prevent double assignment errors
+        // Checks if currentComputer is already assigned to prevent double assignment errors
         const existingPC = await Employee.findOne({ currentComputer })
         if (existingPC) {
             return res.status(400).json({
@@ -36,12 +37,14 @@ export const addNewEmployee = async (req, res) => {
             })
         }
 
+        // If status is set to Replaced, newComputer must be provided. If not, return error message
         if (status === 'Replaced' && !newComputer) {
             return res.status(400).json({
                 message: `Status cannot be set to Replaced without assigning a new computer.`
             })
         }
 
+        // Create new employee object with provided fields
         const newEmployee = new Employee({
             employeeName,
             email,
@@ -169,6 +172,7 @@ export const getEmployeeWithID = async (req, res) => {
 /========================================*/
 export const updateEmployee = async (req, res) => {
     try {
+        // Extract ID from URL and updates from request body
         const { employeeID } = req.params
         const updates = req.body
 
@@ -179,11 +183,13 @@ export const updateEmployee = async (req, res) => {
             })
         }
 
+        // Find employee by ID to check for existing values and assigned computer before applying updates
         const employee = await Employee.findById(employeeID).populate('newComputer');
         if (!employee) {
             return res.status(404).json({ message: `Employee not found`});
         }
 
+        // Store old computer ID before updates to check if it needs to be unassigned later
         const oldComputerID = employee.newComputer;
 
         // Check for email duplication (if email is being updated)
@@ -365,6 +371,7 @@ export const deleteEmployee = async (req, res) => {
 /======================================*/
 export const bulkDeleteEmployees = async (req, res) => {
     try {
+        // Extract employeeIDs array from request body and validate it
         const { employeeIDs } = req.body
         if (!Array.isArray(employeeIDs) || employeeIDs.length === 0) {
             return res.status(400).json({
@@ -385,6 +392,7 @@ export const bulkDeleteEmployees = async (req, res) => {
                     message: `Employee not found: ${id}`
                 })
             }
+            // Unassign any assigned computers for each employee before deletion to prevent orphaned computer records
             if (employee.newComputer) {
                 const assignedComputer = await Computer.findById(employee.newComputer)
                 if (assignedComputer) {
