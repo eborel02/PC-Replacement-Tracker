@@ -12,6 +12,7 @@ import { navBarStyles } from './styles';
 import { NavLink, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
+  // Get the current location to determine which nav item is active
   const location = useLocation();
 
   return (

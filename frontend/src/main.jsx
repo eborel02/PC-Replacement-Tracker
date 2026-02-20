@@ -12,6 +12,9 @@ import CreateComputer from "./pages/Computers/CreateComputer";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./theme/theme.jsx";
 
+// The main entry point of the React application. 
+// It sets up the routing for the application using React Router and applies a custom Material-UI theme. 
+// The App component serves as the layout for the application, and different pages are rendered based on the URL path.
 const root = document.getElementById("root");
 
 ReactDOM.createRoot(root).render(

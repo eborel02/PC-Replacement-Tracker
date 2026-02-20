@@ -24,6 +24,7 @@ const CreateEmployee = () => {
         notes: '',
     });
 
+    // Separate state for form data and errors to manage validation
     const [formData, setFormData] = useState({
         employeeName: '',
         email : null,
@@ -36,6 +37,7 @@ const CreateEmployee = () => {
 
     const [computers, setComputers] = useState([]);
 
+    // Fetch computers on component mount to populate the dropdown for "New Computer"
     useEffect(() => {
         const fetchComputers = async () => {
             try {
@@ -55,6 +57,7 @@ const CreateEmployee = () => {
         fetchComputers();
     }, []);
 
+    // Handle input changes for all form fields
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setFormData((prev) => ({
@@ -68,6 +71,7 @@ const CreateEmployee = () => {
         }));
     };
 
+    // Validate form fields before submission
     const validateForm = () => {
         const newErrors = {};
 
@@ -92,6 +96,7 @@ const CreateEmployee = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    // 
     const handleSubmit = async () => {
         if (!validateForm()) {
             return;
@@ -120,6 +125,7 @@ const CreateEmployee = () => {
         }
     };
 
+    // Memoize the list of selectable computers to avoid unnecessary computations on re-renders
     const selectableComputers = useMemo(() => {
         if (!Array.isArray(computers)) return [];
 

@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { ComputerSchema } from '../models/computersModels'
 import { EmployeeSchema } from '../models/employeeModels'
 
+// Declare models here to avoid circular import issues
 const Computer = mongoose.models.Computer || mongoose.model('Computer', ComputerSchema)
 const Employee = mongoose.models.Employee || mongoose.model('Employee', EmployeeSchema)
 
@@ -10,6 +11,7 @@ const Employee = mongoose.models.Employee || mongoose.model('Employee', Employee
 /====================================*/
 export const createComputer = async (req, res) => {
     try {
+        // Destructure and validate input data
         const { 
             computerNumber, 
             status, 
@@ -17,18 +19,21 @@ export const createComputer = async (req, res) => {
             notes 
         } = req.body
 
+        // Validation: Assigned computers must have an assigned employee
         if (status === 'Assigned' && !assignedTo) {
             return res.status(400).json({
                 message: `Assigned computers must have an assigned employee`
             })
         }
 
+        // Validation: Available computers cannot have an assigned employee
         if (status === 'Available' && assignedTo) {
             return res.status(400).json({
                 message: `Available computers cannot have an assigned employee`
             })
         }
 
+        // Validation: Check for duplicate computer number
         const existing = await Computer.findOne({ computerNumber })
         if (existing) {
             return res.status(400).json({
@@ -36,6 +41,7 @@ export const createComputer = async (req, res) => {
             })
         }
 
+        // Create new computer
         const newComputer = new Computer({
             computerNumber,
             status,
@@ -57,6 +63,7 @@ export const createComputer = async (req, res) => {
             await employee.save()
         }
 
+        // Save new computer to database
         const savedComputer = await newComputer.save()
         res.status(201).json({
             message: `Computer created successfully`,
@@ -74,6 +81,7 @@ export const createComputer = async (req, res) => {
 /==================================*/
 export const getAllComputers = async (req, res) => {
     try {
+        // Populate assignedTo with employeeName and email for easier frontend display
         const computers = await Computer.find().populate('assignedTo', 'employeeName email')
         res.status(200).json({
             message: `Computers retrieved successfully`,
@@ -92,6 +100,7 @@ export const getAllComputers = async (req, res) => {
 /===================================*/
 export const getComputerById = async (req, res) => {
     try {
+        // Validate computer ID
         const { computerID } = req.params
 
         if (!mongoose.Types.ObjectId.isValid(computerID)) {
@@ -100,14 +109,17 @@ export const getComputerById = async (req, res) => {
             })
         }
 
+        // Populate assignedTo with employeeName and email for easier frontend display
         const computer = await Computer.findById(computerID).populate('assignedTo', 'employeeName email')
 
+        // If computer not found, return 404
         if (!computer) {
             return res.status(404).json({
                 message: `Computer not found`
             })
         }
 
+        // Return computer data
         res.status(200).json({
             message: `Computer retrieved successfully`,
             computer
@@ -125,6 +137,7 @@ export const getComputerById = async (req, res) => {
 /================================*/
 export const updateComputer = async (req, res) => {
     try {
+        // Destructure input data
         const { computerID } = req.params
         const updateData = req.body
 
@@ -133,6 +146,7 @@ export const updateComputer = async (req, res) => {
             return res.status(400).json({ message: `Invalid computer ID` });
         }
 
+        // Find the computer to update and populate assignedTo for validation checks
         const updatedComputer = await Computer.findById(computerID).populate('assignedTo');
         if (!updatedComputer) {
             return res.status(404).json({ message: `Computer not found`});
@@ -173,6 +187,7 @@ export const updateComputer = async (req, res) => {
             employee.status = 'Replaced'
             await employee.save()
 
+            // If the computer was previously assigned to a different employee, unassign it from that employee
             const previousEmployee = updatedComputer.assignedTo ? await Employee.findById(updatedComputer.assignedTo._id) : null;
             if (previousEmployee && previousEmployee._id.toString() !== employee._id.toString()) {
                 previousEmployee.newComputer = null;
@@ -180,6 +195,7 @@ export const updateComputer = async (req, res) => {
                 await previousEmployee.save();
             }
 
+            // Update computer assignment
             updatedComputer.assignedTo = updateData.assignedTo
             updatedComputer.status = 'Assigned'
             await updatedComputer.save()
@@ -220,6 +236,7 @@ export const updateComputer = async (req, res) => {
 /================================*/
 export const deleteComputer = async (req, res) => {
     try {
+        // Validate computer ID
         const { computerID } = req.params
 
         if (!mongoose.Types.ObjectId.isValid(computerID)) {
@@ -228,14 +245,17 @@ export const deleteComputer = async (req, res) => {
             })
         }
 
+        // Find the computer to delete
         const computerToDelete = await Computer.findById(computerID)
 
+        // If computer not found, return 404
         if (!computerToDelete) {
             return res.status(404).json({
                 message: `Computer not found`
             })
         }
 
+        // If the computer is assigned to an employee, unassign it and update employee status before deletion
         if (computerToDelete.assignedTo) {
             const employee = await Employee.findById(computerToDelete.assignedTo)
             if (employee) {
@@ -245,6 +265,7 @@ export const deleteComputer = async (req, res) => {
             }
         }
 
+        // Delete the computer
         const deletedComputer = await Computer.findByIdAndDelete(computerID)
         res.status(200).json({
             message: `Computer deleted successfully`,
@@ -264,6 +285,7 @@ export const deleteComputer = async (req, res) => {
 /======================================*/
 export const bulkDeleteComputers = async (req, res) => {
     try {
+        // Validate input data
         const { computerIDs } = req.body
         if (!Array.isArray(computerIDs) || computerIDs.length === 0) {
             return res.status(400).json({
@@ -284,6 +306,7 @@ export const bulkDeleteComputers = async (req, res) => {
                     message: `Computer not found: ${id}`
                 })
             }
+            // If the computer is assigned to an employee, unassign it and update employee status before deletion
             if (computer.assignedTo) {
                 const employee = await Employee.findById(computer.assignedTo)
                 if (employee) {
