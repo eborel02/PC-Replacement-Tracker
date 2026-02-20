@@ -4,7 +4,6 @@ import {
     getEmployees,
     getEmployeeWithID,
     updateEmployee,
-    updateEmployeePartial,
     deleteEmployee,
     bulkDeleteEmployees
 } from '../controllers/employeeControllers'
@@ -20,11 +19,8 @@ router.get('/', getEmployees)
 // GET specific employee by ID
 router.get('/:employeeID', getEmployeeWithID)
 
-// PUT (update) an employee by ID
-router.put('/:employeeID', updateEmployee)
-
 // PATCH (partial update) an employee by ID
-router.patch('/:employeeID', updateEmployeePartial)
+router.patch('/:employeeID', updateEmployee)
 
 // DELETE multiple employees by IDs
 router.delete('/bulk-delete', bulkDeleteEmployees)

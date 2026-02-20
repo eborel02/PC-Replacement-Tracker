@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+// @ts-nocheck
+
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
 import {
     Box,
     TextField,
@@ -8,6 +9,7 @@ import {
     MenuItem,
     InputLabel,
     FormControl,
+    FormHelperText,
     Button,
     Typography,
 } from '@mui/material';
@@ -25,10 +27,17 @@ const EditComputer = () => {
         notes: '',
     });
 
+    const [formData, setFormData] = useState({
+        computerNumber: '',
+        status: '',
+        assignedTo: '',
+        notes: '',
+    });
+    const [errors, setErrors] = useState({});
+
     useEffect(() => {
         const fetchComputerAndEmployees = async () => {
             try {
-                // 1️⃣ Fetch computer
                 const responseComp = await fetch(`http://localhost:4000/computers/${id}`);
                 const dataComp = await responseComp.json();
                 const assignedEmployee = dataComp.computer.assignedTo;
@@ -41,7 +50,6 @@ const EditComputer = () => {
                     notes: dataComp.computer.notes || '',
                 });
 
-                // 2️⃣ Fetch employees
                 const responseEmp = await fetch('http://localhost:4000/employees');
                 const dataEmp = await responseEmp.json();
 
@@ -82,6 +90,11 @@ const EditComputer = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: value,  
+        }));
+
         setComputer(prev => ({ 
             ...prev, 
             [name]: value,
@@ -89,8 +102,30 @@ const EditComputer = () => {
         }));
     };
 
+    const validateForm =() => {
+        const newErrors = {};
+
+        if (!computer.computerNumber.trim()) {
+            newErrors.computerNumber = 'Computer Number is required';
+        }
+
+        if (!computer.status) {
+            newErrors.status = 'Status is required';
+        }
+
+        if (computer.status === 'Assigned' && !computer.assignedTo) {
+            newErrors.assignedTo = 'Assigned To is required when status is Assigned';
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSave = async (e) => {
-        e.preventDefault();
+        if (!validateForm()) {
+            return;
+        }
 
         try {
             const response = await fetch(`http://localhost:4000/computers/${id}`, {
@@ -104,7 +139,7 @@ const EditComputer = () => {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to update computer');
             }
-            navigate('/computers');
+            navigate('/computers', { state: { successMessage: 'Computer updated successfully!' } });
         } catch (error) {
             console.error('Error updating computer:', error);
             setError('Failed to update computer.');
@@ -127,12 +162,14 @@ const EditComputer = () => {
                     name="computerNumber"
                     value={computer.computerNumber}
                     onChange={handleChange}
+                    error={Boolean(errors.computerNumber)}
+                    helperText={errors.computerNumber}
                     fullWidth
                     margin="normal"
                     required
                 />
 
-                <FormControl fullWidth margin="normal">
+                <FormControl fullWidth error={Boolean(errors.status)} margin="normal">
                     <InputLabel>Status</InputLabel>
                     <Select
                         name="status"
@@ -144,10 +181,11 @@ const EditComputer = () => {
                         <MenuItem value="Assigned">Assigned</MenuItem>
                         <MenuItem value="Maintenance">Maintenance</MenuItem>
                     </Select>
+                    <FormHelperText>{errors.status}</FormHelperText>
                 </FormControl>
                 
                 {computer.status === 'Assigned' && (
-                    <FormControl fullWidth margin="normal">
+                    <FormControl fullWidth error={Boolean(errors.assignedTo)} margin="normal">
                         <InputLabel>Assigned To</InputLabel>
                         <Select
                             name="assignedTo"
@@ -162,6 +200,7 @@ const EditComputer = () => {
                                 </MenuItem>
                             ))}
                         </Select>
+                        <FormHelperText>{errors.assignedTo}</FormHelperText>
                     </FormControl>
                 )}
 

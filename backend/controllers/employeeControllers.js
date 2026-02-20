@@ -36,6 +36,12 @@ export const addNewEmployee = async (req, res) => {
             })
         }
 
+        if (status === 'Replaced' && !newComputer) {
+            return res.status(400).json({
+                message: `Status cannot be set to Replaced without assigning a new computer.`
+            })
+        }
+
         const newEmployee = new Employee({
             employeeName,
             email,
@@ -45,6 +51,20 @@ export const addNewEmployee = async (req, res) => {
             notes
         })
         
+        // Assign new computer if status is set to Replaced and newComputer is provided
+        if (status === 'Replaced' && newComputer) {
+            const computer = await Computer.findById(newComputer);
+            if (!computer) {
+                return res.status(404).json({ message: `Computer not found` });
+            }
+            if (computer.assignedTo) {
+                return res.status(400).json({ message: `Computer already assigned to another employee` });
+            }
+            computer.assignedTo = newEmployee._id
+            computer.status = 'Assigned'
+            await computer.save()
+        }
+
         // 'await' to pause execution until Promise is resolved
         const savedEmployee = await newEmployee.save()
 
@@ -119,7 +139,7 @@ export const getEmployeeWithID = async (req, res) => {
         }
 
         // Find employee by ID
-        const employee = await Employee.findById(employeeID)
+        const employee = await Employee.findById(employeeID).populate('newComputer', 'computerNumber')
 
         // If employee ID doesn't exist return error
         if (!employee) {
@@ -144,100 +164,10 @@ export const getEmployeeWithID = async (req, res) => {
     }
 }
 
-/*================================/
-/    METHOD TO UPDATE EMPLOYEE    /
-/================================*/
-export const updateEmployee = async (req, res) => {
-    try {
-        const { employeeID } = req.params
-        const updates = req.body
-
-        // Validate ID
-        if (!mongoose.Types.ObjectId.isValid(employeeID)) {
-            return res.status(400).json({
-                message: `Invalid employee ID`
-            })
-        }
-
-        // Check for email duplication (if email is being updated)
-        if (updates.email) {
-            const existingEmail = await Employee.findOne({ email: updates.email, _id: { $ne: employeeID } })
-            if (existingEmail) {
-                return res.status(400).json({
-                    message: `Email ${updates.email} is already assigned to another employee.`
-                })
-            }
-        }
-
-        // Check for currentComputer duplication (if currentComputer is being updated)
-        if (updates.currentComputer) {
-            const existingPC = await Employee.findOne({ currentComputer: updates.currentComputer, _id: { $ne: employeeID } })
-            if (existingPC) {
-                return res.status(400).json({
-                    message: `Current computer ${updates.currentComputer} is already assigned to another employee.`
-                })
-            }
-        }
-
-        // Find and update employee
-        const updatedEmployee = await Employee.findByIdAndUpdate(
-            employeeID,
-            updates,
-            {
-                new: true,
-                runValidators: true,
-                context: 'query'
-            }
-        )
-
-        // If employee could not be found, send error
-        if (!updatedEmployee) {
-            return res.status(404).json({
-                message: `Employee not found`
-            })
-        }
-
-        // If successful, send success message and return updated employee
-        res.status(200).json({
-            message: `Employee updated successfully`,
-            employee: updateEmployee
-        })
-    }
-    // Catch any errors with updating employee
-    catch (err) {
-        console.error('Error updating employee:', err)
-
-        // If validation error with mongo occurs, send error message
-        if (err.name === 'ValidationError') {
-            const errors = Object.keys(err.errors).map(key => ({
-                field: key,
-                message: err.errors[key].message
-            }))
-            return res.status(400).json({
-                message: `Validation failed`,
-                errors
-            })
-        }
-
-        // If duplication error occurs, send error message
-        if (err.code === 11000) {
-            return res.status(400).json({
-                message: `Duplicate value error: ${JSON.stringify(err.keyValue)}`
-            })
-        }
-
-        // For other errors send server error message
-        res.status(500).json({
-            message: `Server error`,
-            error: err.message
-        })
-    }
-}
-
 /*========================================/
 /    METHOD TO UPDATE EMPLOYEE PARTIAL    /
 /========================================*/
-export const updateEmployeePartial = async (req, res) => {
+export const updateEmployee = async (req, res) => {
     try {
         const { employeeID } = req.params
         const updates = req.body
