@@ -5,7 +5,8 @@ import {
     getEmployeeWithID,
     updateEmployee,
     updateEmployeePartial,
-    deleteEmployee
+    deleteEmployee,
+    bulkDeleteEmployees
 } from '../controllers/employeeControllers'
 
 const router = Router()
@@ -24,6 +25,9 @@ router.put('/:employeeID', updateEmployee)
 
 // PATCH (partial update) an employee by ID
 router.patch('/:employeeID', updateEmployeePartial)
+
+// DELETE multiple employees by IDs
+router.delete('/bulk-delete', bulkDeleteEmployees)
 
 // DELETE an employee
 router.delete('/:employeeID', deleteEmployee)

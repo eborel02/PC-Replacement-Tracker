@@ -315,6 +315,12 @@ export const updateEmployeePartial = async (req, res) => {
             computer.status = 'Assigned'
             await computer.save()
 
+            if (oldComputerID) {
+                oldComputerID.assignedTo = null
+                oldComputerID.status = 'Available'
+                await oldComputerID.save()
+            }
+
             employee.newComputer = updates.newComputer
             employee.status = 'Replaced'
             await employee.save()
@@ -387,17 +393,28 @@ export const deleteEmployee = async (req, res) => {
             })
         }
 
-        // Delete the employee
-        const deletedEmployee = await Employee.findByIdAndDelete(employeeID)
+        // Find the employee to delete to check for assigned computer before deletion
+        const employeeToDelete = await Employee.findById(employeeID)
 
         // If employee not found, send error
-        if (!deletedEmployee) {
+        if (!employeeToDelete) {
             return res.status(404).json({
                 message: `Employee not found`
             })
         }
 
+        // If employee has an assigned new computer, unassign it before deleting employee
+        if (employeeToDelete.newComputer) {
+            const assignedComputer = await Computer.findById(employeeToDelete.newComputer)
+            if (assignedComputer) {
+                assignedComputer.assignedTo = null
+                assignedComputer.status = 'Available'
+                await assignedComputer.save()
+            }
+        }
+
         // If successful, send success message and return deleted employee
+        const deletedEmployee = await Employee.findByIdAndDelete(employeeID)
         res.status(200).json({
             message: `Employee deleted successfully`,
             employee: deletedEmployee
@@ -406,6 +423,57 @@ export const deleteEmployee = async (req, res) => {
     // Catch any errors and respond accordingly
     catch (err) {
         console.error('Error deleting employee:', err)
+        res.status(500).json({
+            message: `Server error`,
+            error: err.message
+        })
+    }
+}
+
+/*======================================/
+/    METHOD TO BULK DELETE EMPLOYEES    /
+/======================================*/
+export const bulkDeleteEmployees = async (req, res) => {
+    try {
+        const { employeeIDs } = req.body
+        if (!Array.isArray(employeeIDs) || employeeIDs.length === 0) {
+            return res.status(400).json({
+                message: `employeeIDs must be a non-empty array`
+            })
+        }
+
+        // Validate each ID and check for assigned computers before deletion
+        for (const id of employeeIDs) {
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: `Invalid employee ID: ${id}`
+                })
+            }
+            const employee = await Employee.findById(id)
+            if (!employee) {
+                return res.status(404).json({
+                    message: `Employee not found: ${id}`
+                })
+            }
+            if (employee.newComputer) {
+                const assignedComputer = await Computer.findById(employee.newComputer)
+                if (assignedComputer) {
+                    assignedComputer.assignedTo = null
+                    assignedComputer.status = 'Available'
+                    await assignedComputer.save()
+                }
+            }
+        }
+
+        // Delete all employees in the array
+        const deletedEmployees = await Employee.deleteMany({ _id: { $in: employeeIDs } })
+
+        res.status(200).json({
+            message: `Employees deleted successfully`,
+            count: deletedEmployees.deletedCount
+        })
+    } catch (err) {
+        console.error('Error bulk deleting employees:', err)
         res.status(500).json({
             message: `Server error`,
             error: err.message
