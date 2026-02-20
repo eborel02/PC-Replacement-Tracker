@@ -1,11 +1,14 @@
+// @ts-nocheck
+
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Form, useNavigate } from "react-router";
 import { useMemo } from 'react';
 import { Box,
   Button,
   TextField,
   Typography,
   FormControl,
+  FormHelperText,
   InputLabel,
   Select,
   MenuItem,
@@ -16,9 +19,17 @@ const CreateComputer = () => {
     const [computer, setComputer] = useState({
         computerNumber: '',
         status: '',
+        assignedTo: null,
+        notes: ''
+    });
+
+    const [formData, setFormData] = useState({
+        computerNumber: '',
+        status: '',
         assignedTo: '',
         notes: ''
     });
+    const [errors, setErrors] = useState({});
 
     const [employees, setEmployees] = useState([]);
 
@@ -39,17 +50,46 @@ const CreateComputer = () => {
         };
 
         fetchEmployees();
-    }), [];
+    }, []);
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
+        setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        }));
+
         setComputer((prev) => ({
             ...prev,
             [name]: value,
         }));
     };
 
-    const handleSubmit = async () => {
+    const validateForm =() => {
+        const newErrors = {};
+
+        if (!formData.computerNumber.trim()) {
+            newErrors.computerNumber = 'Computer Number is required';
+        }
+
+        if (!formData.status) {
+            newErrors.status = 'Status is required';
+        }
+
+        if (formData.status === 'Assigned' && !formData.assignedTo) {
+            newErrors.assignedTo = 'Assigned To is required when status is Assigned';
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async (e) => {
+        if (!validateForm()) {
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:4000/computers', {
                 method: 'POST',
@@ -67,20 +107,20 @@ const CreateComputer = () => {
 
             console.log('Computer created:', data);
 
-            navigate('/computers');
+            navigate('/computers', { state: { successMessage: 'Computer created successfully!' } });
         } catch (error) {
             console.error('Error creating computer:', error);
         }
     };
 
     const selectableEmployees = useMemo(() => {
-            if (!Array.isArray(employees)) return [];
-    
-            // Employees WITHOUT a computer
-            let list = employees.filter(emp => !emp.newComputer);
-    
-            return list;
-        }, [employees]);
+        if (!Array.isArray(employees)) return [];
+
+        // Employees WITHOUT a computer
+        let list = employees.filter(emp => !emp.newComputer);
+
+        return list;
+    }, [employees]);
 
     return (
         <Box sx={{maxWidth: 600, mx: 'auto', mt: 4 }}>
@@ -91,10 +131,12 @@ const CreateComputer = () => {
                 name="computerNumber"
                 value={computer.computerNumber ?? ''}
                 onChange={handleInputChange}
+                error={Boolean(errors.computerNumber)}
+                helperText={errors.computerNumber}
                 margin="normal"
             />
 
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth error={Boolean(errors.status)} margin="normal">
                 <InputLabel>Status</InputLabel>
                 <Select
                     name="status"
@@ -106,10 +148,11 @@ const CreateComputer = () => {
                     <MenuItem value="Assigned">Assigned</MenuItem>
                     <MenuItem value="Maintenance">Maintenance</MenuItem>
                 </Select>
+                <FormHelperText>{errors.status}</FormHelperText>
             </FormControl>
 
             {computer.status === 'Assigned' && (
-                <FormControl fullWidth margin="normal">
+                <FormControl fullWidth error={Boolean(errors.assignedTo)} margin="normal">
                     <InputLabel>Assigned To</InputLabel>
                     <Select
                         name="assignedTo"
@@ -124,6 +167,7 @@ const CreateComputer = () => {
                             </MenuItem>
                         ))}
                     </Select>
+                    <FormHelperText>{errors.assignedTo}</FormHelperText>
                 </FormControl>
             )}
 

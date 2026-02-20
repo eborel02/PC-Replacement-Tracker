@@ -1,10 +1,13 @@
-import { useState } from 'react'
-import { data, useNavigate } from 'react-router'
+// @ts-nocheck
+
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Box,
   Button,
   TextField,
   Typography,
   FormControl,
+  FormHelperText,
   InputLabel,
   Select,
   MenuItem,
@@ -21,15 +24,79 @@ const CreateEmployee = () => {
         notes: '',
     });
 
+    const [formData, setFormData] = useState({
+        employeeName: '',
+        email : '',
+        currentComputer: '',
+        status: '',
+        newComputer: '',
+        notes: '',
+    });
+    const [errors, setErrors] = useState({});
+
+    const [computers, setComputers] = useState([]);
+
+    useEffect(() => {
+        const fetchComputers = async () => {
+            try {
+                const response = await fetch('http://localhost:4000/computers');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to fetch computers');
+                }
+
+                setComputers(data.computers);
+            } catch (error) {
+                console.error('Error fetching computers:', error);
+            }
+        };
+
+        fetchComputers();
+    }, []);
+
     const handleInputChange = (event) => {
         const { name, value } = event.target;
+        setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+        }));
+
         setEmployee((prev) => ({
         ...prev,
         [name]: value,
         }));
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!formData.employeeName.trim()) {
+            newErrors.employeeName = 'Employee Name is required';
+        }
+
+        if (!formData.currentComputer.trim()) {
+            newErrors.currentComputer = 'Current Computer is required';
+        }
+
+        if (!formData.status) {
+            newErrors.status = 'Status is required';
+        }
+
+        if (formData.status === 'Replaced' && !formData.newComputer) {
+            newErrors.newComputer = 'New Computer is required when status is Replaced';
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async () => {
+        if (!validateForm()) {
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:4000/employees', {
                 method: 'POST',
@@ -47,11 +114,20 @@ const CreateEmployee = () => {
 
             console.log('Employee created:', data);
 
-            navigate('/employees');
+            navigate('/employees', { state: { successMessage: 'Employee created successfully!' } });
         } catch (error) {
             console.error('Error creating employee:', error);
         }
     };
+
+    const selectableComputers = useMemo(() => {
+        if (!Array.isArray(computers)) return [];
+
+        // Computers WITHOUT an assigned employee
+        let list = computers.filter(comp => !comp.assignedTo);
+
+        return list;
+    }, [computers]);
 
     return (
         <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
@@ -62,8 +138,11 @@ const CreateEmployee = () => {
                 name="employeeName"
                 value={employee.employeeName ?? ''}
                 onChange={handleInputChange}
+                error={Boolean(errors.employeeName)}
+                helperText={errors.employeeName}
                 margin="normal"
             />
+            
             <TextField
                 fullWidth
                 label="Email"
@@ -72,15 +151,19 @@ const CreateEmployee = () => {
                 onChange={handleInputChange}
                 margin="normal"
             />
+
             <TextField
                 fullWidth
                 label="Current Computer"
                 name="currentComputer"
                 value={employee.currentComputer ?? ''}
                 onChange={handleInputChange}
+                error={Boolean(errors.currentComputer)}
+                helperText={errors.currentComputer}
                 margin="normal"
             />
-            <FormControl fullWidth margin="normal">
+
+            <FormControl fullWidth error={Boolean(errors.status)} margin="normal">
                 <InputLabel>Status</InputLabel>
                 <Select
                     name="status"
@@ -92,15 +175,29 @@ const CreateEmployee = () => {
                     <MenuItem value="Pulled Without Replacement">Pulled Without Replacement</MenuItem>
                     <MenuItem value="Replaced">Replaced</MenuItem>
                 </Select>
+                <FormHelperText>{errors.status}</FormHelperText>
             </FormControl>
-            <TextField
-                fullWidth
-                label="New Computer"
-                name="newComputer"
-                value={employee.newComputer ?? ''}
-                onChange={handleInputChange}
-                margin="normal"
-            />
+
+            {employee.status === 'Replaced' && (
+                <FormControl fullWidth error={Boolean(errors.newComputer)} margin="normal">
+                    <InputLabel>New Computer</InputLabel>
+                    <Select
+                        name="newComputer"
+                        value={employee.newComputer}
+                        onChange={handleInputChange}
+                        label="New Computer"
+                    >
+                        <MenuItem value="">-- Select Computer --</MenuItem>
+                        {selectableComputers.map(computer => (
+                            <MenuItem key={computer._id} value={computer._id}>
+                                {computer.computerNumber}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    <FormHelperText>{errors.newComputer}</FormHelperText>
+                </FormControl>
+            )}
+
             <TextField
                 fullWidth
                 label="Notes"

@@ -1,8 +1,19 @@
-import { useEffect, useState } from "react";
+// @ts-nocheck
+
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Button, TextField, Typography } from "@mui/material";
-import { Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { useMemo } from 'react';
+import { 
+    Box,
+    Button, 
+    TextField, 
+    Typography,
+    Select,
+    MenuItem,
+    FormControl,
+    FormHelperText,
+    InputLabel,
+} from "@mui/material";
+
 
 const EditEmployees = () => {
     const { id } = useParams();
@@ -17,6 +28,16 @@ const EditEmployees = () => {
         newComputer: '',
         notes: '',
     });
+
+    const [formData, setFormData] = useState({
+        employeeName: '',
+        email: '',
+        currentComputer: '',
+        status: '',
+        newComputer: '',
+        notes: '',
+    });
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         const fetchEmployeeAndComputers = async () => {
@@ -35,9 +56,11 @@ const EditEmployees = () => {
                     notes: dataEmp.employee.notes || '',
                 });
 
+
                 // Fetch computers
                 const responseComp = await fetch('http://localhost:4000/computers');
                 const dataComp = await responseComp.json();
+
 
                 // Add currently assigned computer if missing
                 let compList = dataComp.computers;
@@ -45,6 +68,7 @@ const EditEmployees = () => {
                     compList = [...compList, assignedComputer];
                 }
                 setComputers(compList);
+
             } catch (error) {
                 console.error("Error fetching employee:", error);
             }
@@ -73,6 +97,11 @@ const EditEmployees = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+
         setEmployee(prev => ({
             ...prev,
             [name]: value,
@@ -80,8 +109,33 @@ const EditEmployees = () => {
         }));
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!employee.employeeName.trim()) {
+            newErrors.employeeName = 'Employee Name is required';
+        }
+
+        if (!employee.currentComputer.trim()) {
+            newErrors.currentComputer = 'Current Computer is required';
+        }
+
+        if (!employee.status) {
+            newErrors.status = 'Status is required';
+        }
+
+        if (employee.status === 'Replaced' && !employee.newComputer) {
+            newErrors.newComputer = 'New Computer is required when status is Replaced';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSave = async (e) => {
-        e.preventDefault();
+        if (!validateForm()) {
+            return;
+        }
 
         try {
             const response = await fetch(`http://localhost:4000/employees/${id}`, {
@@ -95,7 +149,7 @@ const EditEmployees = () => {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to update employee');
             }
-            navigate('/employees');
+            navigate('/employees', { state: { successMessage: 'Employee updated successfully!' } });
         } catch (error) {
             console.error('Error updating employee:', error);
         }
@@ -110,6 +164,8 @@ const EditEmployees = () => {
                     name="employeeName"
                     value={employee.employeeName}
                     onChange={handleChange}
+                    error={Boolean(errors.employeeName)}
+                    helperText={errors.employeeName}
                     fullWidth
                     margin="normal"
                     required
@@ -129,11 +185,13 @@ const EditEmployees = () => {
                     name="currentComputer"
                     value={employee.currentComputer}
                     onChange={handleChange}
+                    error={Boolean(errors.currentComputer)}
+                    helperText={errors.currentComputer}
                     fullWidth
                     margin="normal"
                 />
 
-                <FormControl fullWidth margin="normal">
+                <FormControl fullWidth error={Boolean(errors.status)} margin="normal">
                     <InputLabel>Status</InputLabel>
                     <Select
                         name="status"
@@ -145,10 +203,11 @@ const EditEmployees = () => {
                         <MenuItem value="Pulled Without Replacement">Pulled Without Replacement</MenuItem>
                         <MenuItem value="Replaced">Replaced</MenuItem>
                     </Select>
+                    <FormHelperText>{errors.status}</FormHelperText>
                 </FormControl>
 
                 {employee.status === 'Replaced' && (
-                    <FormControl fullWidth margin="normal">
+                    <FormControl fullWidth error={Boolean(errors.newComputer)} margin="normal">
                         <InputLabel>New Computer</InputLabel>
                         <Select
                             name="newComputer"
@@ -163,6 +222,7 @@ const EditEmployees = () => {
                                 </MenuItem>
                             ))}
                         </Select>
+                        <FormHelperText>{errors.newComputer}</FormHelperText>
                     </FormControl>
                 )}
 
