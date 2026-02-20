@@ -120,33 +120,6 @@ export const getComputerById = async (req, res) => {
     }
 }
 
-/*========================================/
-/    METHOD TO GET AVAILABLE COMPUTERS    /
-/========================================*/
-
-/*================================================/
-/    METHOD TO GET EMPLOYEES WITHOUT COMPUTERS    /
-/================================================*/
-export const getAvailableEmployees = async (req, res) => {
-    try {
-        const Employee = mongoose.model('Employee');
-
-        const employees = await Employee.find({
-            $or: [
-                { newComputer: null },
-                { newComputer: { $exists: false } }
-            ]
-        }).select('employeeName email');
-
-        res.status(200).json({ employees });
-    } catch (err) {
-        res.status(500).json({
-        message: 'Failed to fetch available employees',
-        error: err.message
-        });
-    }
-};
-
 /*================================/
 /    METHOD TO UPDATE COMPUTER    /
 /================================*/
@@ -200,6 +173,13 @@ export const updateComputer = async (req, res) => {
             employee.status = 'Replaced'
             await employee.save()
 
+            const previousEmployee = updatedComputer.assignedTo ? await Employee.findById(updatedComputer.assignedTo._id) : null;
+            if (previousEmployee && previousEmployee._id.toString() !== employee._id.toString()) {
+                previousEmployee.newComputer = null;
+                previousEmployee.status = 'Awaiting Action';
+                await previousEmployee.save();
+            }
+
             updatedComputer.assignedTo = updateData.assignedTo
             updatedComputer.status = 'Assigned'
             await updatedComputer.save()
@@ -248,20 +228,81 @@ export const deleteComputer = async (req, res) => {
             })
         }
 
-        const deletedComputer = await Computer.findByIdAndDelete(computerID)
+        const computerToDelete = await Computer.findById(computerID)
 
-        if (!deletedComputer) {
+        if (!computerToDelete) {
             return res.status(404).json({
                 message: `Computer not found`
             })
         }
 
+        if (computerToDelete.assignedTo) {
+            const employee = await Employee.findById(computerToDelete.assignedTo)
+            if (employee) {
+                employee.newComputer = null
+                employee.status = 'Awaiting Action'
+                await employee.save()
+            }
+        }
+
+        const deletedComputer = await Computer.findByIdAndDelete(computerID)
         res.status(200).json({
             message: `Computer deleted successfully`,
             computer: deletedComputer
         })
     } catch (err) {
         console.error('Error deleting computer:', err)
+        res.status(500).json({
+            message: `Server error`,
+            error: err.message
+        })
+    }
+}
+
+/*======================================/
+/    METHOD TO BULK DELETE COMPUTERS    /
+/======================================*/
+export const bulkDeleteComputers = async (req, res) => {
+    try {
+        const { computerIDs } = req.body
+        if (!Array.isArray(computerIDs) || computerIDs.length === 0) {
+            return res.status(400).json({
+                message: `computerIDs must be a non-empty array`
+            })
+        }
+
+        // Validate each ID and check for assigned employees before deletion
+        for (const id of computerIDs) {
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: `Invalid computer ID: ${id}`
+                })
+            }
+            const computer = await Computer.findById(id)
+            if (!computer) {
+                return res.status(404).json({
+                    message: `Computer not found: ${id}`
+                })
+            }
+            if (computer.assignedTo) {
+                const employee = await Employee.findById(computer.assignedTo)
+                if (employee) {
+                    employee.newComputer = null
+                    employee.status = 'Awaiting Action'
+                    await employee.save()
+                }
+            }
+        }
+
+        // Delete all computers in the array
+        const deletedComputers = await Computer.deleteMany({ _id: { $in: computerIDs } })
+
+        res.status(200).json({
+            message: `Computers deleted successfully`,
+            count: deletedComputers.deletedCount
+        })
+    } catch (err) {
+        console.error('Error bulk deleting computers:', err)
         res.status(500).json({
             message: `Server error`,
             error: err.message

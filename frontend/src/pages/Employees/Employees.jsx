@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
@@ -35,6 +35,7 @@ import {
     MenuItem,
 } from "@mui/material";
 import PropTypes from 'prop-types';
+import { FilterList } from '@mui/icons-material';
 
 
 const headCells = [
@@ -127,7 +128,7 @@ EnhancedTableHead.propTypes = {
 }
 
 function EnhancedTableToolbar(props) {
-    const { numSelected, onAddEmployee, statusFilter } = props;
+    const { numSelected, onAddEmployee, statusFilter, onBulkDelete } = props;
     const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
 
@@ -174,9 +175,9 @@ function EnhancedTableToolbar(props) {
                 </Typography>
             )}
             {numSelected > 0 ? (
-                <Tooltip title="Delete">
-                    <IconButton>
-                    <DeleteIcon />
+                <Tooltip title="Delete Selected">
+                    <IconButton color="error" onClick={onBulkDelete}>
+                        <DeleteIcon />
                     </IconButton>
                 </Tooltip>
                 ) : (
@@ -284,6 +285,8 @@ const Employees = () => {
     // DELETE DIALOG STATE AND HANDLERS
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
+
+    const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
     
     const [order, setOrder] = useState('asc');
     const [orderBy, setOrderBy] = useState('employeeName');
@@ -299,19 +302,19 @@ const Employees = () => {
 
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            const newSelecteds = employees.map((n) => n.employeeName);
+            const newSelecteds = filteredEmployees.map((n) => n._id);
             setSelected(newSelecteds);
         } else {
             setSelected([]);
         }
     };
 
-    const handleClick = (event, employeeName) => {
-        const selectedIndex = selected.indexOf(employeeName);
+    const handleClick = (event, employeeId) => {
+        const selectedIndex = selected.indexOf(employeeId);
         let newSelected = [];
 
         if (selectedIndex === -1) {
-            newSelected = [...selected, employeeName];
+            newSelected = [...selected, employeeId];
         } else if (selectedIndex === 0) {
             newSelected = selected.slice(1);
         } else if (selectedIndex === selected.length - 1) {
@@ -367,6 +370,37 @@ const Employees = () => {
         }
     };
 
+    const handleOpenBulkDeleteDialog = () => {
+        setBulkDeleteDialogOpen(true);
+    };
+
+    const handleCloseBulkDeleteDialog = () => {
+        setBulkDeleteDialogOpen(false);
+    };
+
+    const handleConfirmBulkDelete = async () => {
+        try {
+            const response = await fetch(`http://localhost:4000/employees/bulk-delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ employeeIDs: selected}),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete employees');
+            }
+
+            setEmployees(employees.filter(employee => !selected.includes(employee._id)));
+            setSelected([]);
+        } catch (error) {
+            console.error('Error deleting employees:', error);
+        } finally {
+            handleCloseBulkDeleteDialog();
+        }    
+    };
+
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - employees.length) : 0;
 
     const visibleRows = useMemo(() => {
@@ -393,7 +427,13 @@ const Employees = () => {
 
 
             <Paper>
-                <EnhancedTableToolbar numSelected={selected.length} onAddEmployee={() => navigate("/employees/new")} statusFilter={statusFilter} setStatusFilter={setStatusFilter}/>
+                <EnhancedTableToolbar 
+                    numSelected={selected.length} 
+                    onAddEmployee={() => navigate("/employees/new")} 
+                    statusFilter={statusFilter} 
+                    setStatusFilter={setStatusFilter} 
+                    onBulkDelete={handleOpenBulkDeleteDialog} 
+                />
                 <TableContainer>
                     <Table>
                         <EnhancedTableHead
@@ -406,7 +446,7 @@ const Employees = () => {
                         />
                         <TableBody>
                             {visibleRows.map((row, index) => {
-                                const isItemSelected = selected.indexOf(row.employeeName) !== -1;
+                                const isItemSelected = selected.indexOf(row._id) !== -1;
                                 const labelId = `enhanced-table-checkbox-${index}`;
 
                                 return (
@@ -415,7 +455,7 @@ const Employees = () => {
                                         role="checkbox"
                                         aria-checked={isItemSelected}
                                         tabIndex={-1}
-                                        key={row.employeeName}
+                                        key={row._id}
                                         selected={isItemSelected}
                                         sx={{ 
                                             cursor: 'pointer',
@@ -429,7 +469,7 @@ const Employees = () => {
                                                 inputProps={{ 'aria-labelledby': labelId }}
                                                 onClick={(event) => {
                                                     event.stopPropagation();
-                                                    handleClick(event, row.employeeName);
+                                                    handleClick(event, row._id);
                                                 }}
                                             />
                                         </TableCell>
@@ -527,6 +567,27 @@ const Employees = () => {
                 <DialogActions>
                     <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
                     <Button onClick={handleConfirmDelete} autoFocus color="error" variant="contained">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={bulkDeleteDialogOpen}
+                onClose={handleCloseBulkDeleteDialog}
+                aria-labelledby="alert-dialog-title"
+            >
+                <DialogTitle>
+                    Delete {selected.length} Employees?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseBulkDeleteDialog}>Cancel</Button>
+                    <Button onClick={handleConfirmBulkDelete} autoFocus color="error" variant="contained">
                         Delete
                     </Button>
                 </DialogActions>
