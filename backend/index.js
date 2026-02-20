@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import express from 'express'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
@@ -7,11 +10,11 @@ import computersRoutes from './routes/computersRoutes.js'
 import dashboardRoutes from './routes/dashboardRoutes.js'
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 //mongo connection
 mongoose.Promise = global.Promise
-mongoose.connect('mongodb://localhost:27017/PCReplacement')
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
