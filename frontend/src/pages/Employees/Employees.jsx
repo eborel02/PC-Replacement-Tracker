@@ -431,6 +431,13 @@ const Employees = () => {
                 Employees
             </Typography>
 
+            {/* INFO ALERT */}
+            <Alert severity="info" sx={{ mb: 2 }} variant="outlined">
+                Note: This list shows the last known employee assigned to each computer.
+                Replacing the computer listed does not necessarily mean replacing that employee's current computer.
+                If you find a computer that is assigned to someone other than who is currently listed, please update the employee's record with the correct employee info.
+            </Alert>
+
             {statusFilter && (
                 <Chip
                     label={`Filtered: ${statusFilter}`}
