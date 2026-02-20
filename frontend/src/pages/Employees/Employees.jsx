@@ -7,7 +7,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import SwapVertIcon from '@mui/icons-material/SwapVert';
 import {
     Box,
     Paper,
@@ -37,7 +36,6 @@ import {
     Snackbar
 } from "@mui/material";
 import PropTypes from 'prop-types';
-import { FilterList } from '@mui/icons-material';
 
 const headCells = [
     { id: 'employeeName', numeric: false, disablePadding: true, label: 'Employee Name' },
