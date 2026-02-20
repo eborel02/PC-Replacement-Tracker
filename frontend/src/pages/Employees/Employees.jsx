@@ -37,6 +37,7 @@ import {
 } from "@mui/material";
 import PropTypes from 'prop-types';
 
+// Define the columns for the employee table
 const headCells = [
     { id: 'employeeName', numeric: false, disablePadding: true, label: 'Employee Name' },
     { id: 'email', numeric: false, disablePadding: false, label: 'Email' },
@@ -47,6 +48,7 @@ const headCells = [
     { id: 'actions', numeric: false, disablePadding: false, label: 'Actions' },
 ]
 
+// Helper functions for sorting the table
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -63,6 +65,7 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
+// EnhancedTableHead component for rendering the table header with sorting and select all functionality
 function EnhancedTableHead(props) {
     const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
     const createSortHandler = (property) => (event) => {
@@ -116,6 +119,7 @@ function EnhancedTableHead(props) {
     );
 }
 
+// PropTypes for EnhancedTableHead to ensure correct prop types are passed
 EnhancedTableHead.propTypes = {
     numSelected: PropTypes.number.isRequired,
     onAddEmployee: PropTypes.func.isRequired,
@@ -126,6 +130,7 @@ EnhancedTableHead.propTypes = {
     rowCount: PropTypes.number.isRequired,
 }
 
+// EnhancedTableToolbar component for rendering the toolbar with actions like adding an employee, filtering, and bulk delete
 function EnhancedTableToolbar(props) {
     const { numSelected, onAddEmployee, statusFilter, onBulkDelete } = props;
     const [anchorEl, setAnchorEl] = useState(null);
@@ -232,6 +237,7 @@ function EnhancedTableToolbar(props) {
     );
 }
 
+// PropTypes for EnhancedTableToolbar to ensure correct prop types are passed
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
@@ -245,6 +251,7 @@ const Employees = () => {
     const location = useLocation();
     const [statusFilter, setStatusFilter] = useState(null);
 
+    // Check URL for status filter on initial load and when location changes
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const status = params.get('status');
@@ -256,7 +263,7 @@ const Employees = () => {
         }
     })
 
-    // FETCHING EMPLOYEES FROM BACKEND
+    // Fetch employees from the backend API and store in state
     const [employees, setEmployees] = useState([]);
     const fetchEmployees = async () => {
         try {
@@ -271,17 +278,19 @@ const Employees = () => {
         fetchEmployees();
     }, [])
 
+    // Filter employees based on status filter selected in the toolbar
     const filteredEmployees = employees.filter(employee => 
         statusFilter ? employee.status === statusFilter : true
     );
 
+    // Define colors for different employee statuses using the theme palette
     const statusColors = {
         "Awaiting Action": theme.palette.warning.main,
         "Pulled Without Replacement": theme.palette.error.main,
         "Replaced": theme.palette.success.main,
     };
 
-    // DELETE DIALOG STATE AND HANDLERS
+    // States for delete confirmation dialog, bulk delete dialog, and snackbar notifications
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
@@ -296,17 +305,20 @@ const Employees = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    // Function to show snackbar with a given message
     const showSnackbar = (message) => {
         setSnackbarMessage(message);
         setSnackbarOpen(true);
     };
 
+    // Check for success message in location state and show snackbar if it exists
     useEffect(() => {
         if (location.state?.successMessage) {
             showSnackbar(location.state.successMessage);
         }
     }, [location.state]);
     
+    // handlers for sorting, selecting, pagination, editing, and deleting employees
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
@@ -414,8 +426,10 @@ const Employees = () => {
         }    
     };
 
+    // Calculate empty rows to maintain consistent table height when paginating
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - employees.length) : 0;
 
+    // Memoize the visible rows based on current filters, sorting, and pagination to optimize performance
     const visibleRows = useMemo(() => {
         return filteredEmployees
             .slice()

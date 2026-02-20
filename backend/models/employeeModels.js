@@ -14,7 +14,6 @@ export const EmployeeSchema = new Schema({
         sparse: true
     },
     // Employee's current computer number.
-    // Must be unique to prevent duplicates
     currentComputer: {
         type: String,
         required: true

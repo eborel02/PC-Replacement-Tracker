@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 
 const EditComputer = () => {
+    // State for computer details, employees list, form errors, and original assigned employee
     const { id } = useParams();
     const navigate = useNavigate();
     const [error, setError] = useState(null);
@@ -27,6 +28,7 @@ const EditComputer = () => {
         notes: '',
     });
 
+    // Separate form data state to manage validation errors without affecting the main computer state
     const [formData, setFormData] = useState({
         computerNumber: '',
         status: '',
@@ -35,6 +37,7 @@ const EditComputer = () => {
     });
     const [errors, setErrors] = useState({});
 
+    // Fetch computer details and employees on component mount
     useEffect(() => {
         const fetchComputerAndEmployees = async () => {
             try {
@@ -68,6 +71,7 @@ const EditComputer = () => {
         fetchComputerAndEmployees();
     }, [id]);
 
+    // Memoized list of selectable employees based on current computer status and original assignment
     const selectableEmployees = useMemo(() => {
         if (!Array.isArray(employees)) return [];
 
@@ -88,6 +92,7 @@ const EditComputer = () => {
         return list;
     }, [employees, originalAssignedTo]);
 
+    // Handle form field changes and update both formData and computer state
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ 
@@ -102,6 +107,7 @@ const EditComputer = () => {
         }));
     };
 
+    // Validate form fields before submission
     const validateForm =() => {
         const newErrors = {};
 
@@ -122,6 +128,7 @@ const EditComputer = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    // Handle form submission to update computer details
     const handleSave = async (e) => {
         if (!validateForm()) {
             return;

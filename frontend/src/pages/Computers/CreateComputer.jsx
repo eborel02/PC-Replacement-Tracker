@@ -23,14 +23,17 @@ const CreateComputer = () => {
         notes: ''
     });
 
+    // Form state and validation
     const [formData, setFormData] = useState({
         computerNumber: '',
         status: '',
         assignedTo: '',
         notes: ''
     });
+    // Separate state for form errors
     const [errors, setErrors] = useState({});
 
+    // Fetch employees for the "Assigned To" dropdown
     const [employees, setEmployees] = useState([]);
 
     useEffect(() => {
@@ -52,6 +55,7 @@ const CreateComputer = () => {
         fetchEmployees();
     }, []);
 
+    // Handle input changes for both form data and computer state
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         setFormData((prev) => ({
@@ -65,6 +69,7 @@ const CreateComputer = () => {
         }));
     };
 
+    // Form validation logic
     const validateForm =() => {
         const newErrors = {};
 
@@ -85,6 +90,7 @@ const CreateComputer = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         if (!validateForm()) {
             return;
@@ -113,6 +119,7 @@ const CreateComputer = () => {
         }
     };
 
+    // Filter employees to only include those without an assigned computer
     const selectableEmployees = useMemo(() => {
         if (!Array.isArray(employees)) return [];
 

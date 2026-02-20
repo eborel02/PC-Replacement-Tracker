@@ -38,7 +38,7 @@ import {
 } from "@mui/material";
 import PropTypes from 'prop-types';
 
-
+// Define the columns for the computer table
 const headCells = [
     { id: 'computerNumber', numeric: false, disablePadding: true, label: 'Computer Number' },
     { id: 'status', numeric: false, disablePadding: false, label: 'Status' },
@@ -47,6 +47,7 @@ const headCells = [
     { id: 'actions', numeric: false, disablePadding: false, label: 'Actions'},
 ]
 
+// Helper functions for sorting the table
 function descendingComparator(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
         return -1;
@@ -63,6 +64,7 @@ function getComparator(order, orderBy) {
         : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
+// EnhancedTableHead component for rendering the table header with sorting and select all functionality
 function EnhancedTableHead(props) {
     const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
     const createSortHandler = (property) => (event) => {
@@ -116,6 +118,7 @@ function EnhancedTableHead(props) {
     );
 }
 
+// PropTypes for EnhancedTableHead to ensure correct usage of props
 EnhancedTableHead.propTypes = {
     numSelected: PropTypes.number.isRequired,
     onAddComputer: PropTypes.func.isRequired,
@@ -126,6 +129,7 @@ EnhancedTableHead.propTypes = {
     rowCount: PropTypes.number.isRequired,
 };
 
+// EnhancedTableToolbar component for rendering the toolbar with actions like adding a computer, filtering, and bulk delete
 function EnhancedTableToolbar(props) {
     const { numSelected, onAddComputer, statusFilter, onBulkDelete } = props;
     const [anchorEl, setAnchorEl] = useState(null);
@@ -232,16 +236,20 @@ function EnhancedTableToolbar(props) {
     );
 }
 
+// PropTypes for EnhancedTableToolbar to ensure correct usage of props
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
 
+// Main Computers component that renders the computer inventory table with all functionalities
 const Computers = () => {
+    // Hooks for theme, navigation, location, and state management
     const theme = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
     const [statusFilter, setStatusFilter] = useState(null);
 
+    // Effect to read the status filter from the URL query parameters and update the state accordingly
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const status = params.get('status');
@@ -253,7 +261,7 @@ const Computers = () => {
         }
     })
 
-    // FETCHING COMPUTERS FROM BACKEND
+    // Fetching the list of computers from the backend API and storing it in state
     const [computers, setComputers] = useState([]);
     const fetchComputer = async () => {
         try {
@@ -268,16 +276,19 @@ const Computers = () => {
         fetchComputer();
     }, []);
 
+    // Filtering the list of computers based on the selected status filter
     const filteredComputers = computers.filter(computer => 
         statusFilter ? computer.status === statusFilter : true
     );
 
+    // Define colors for different computer statuses using the theme palette
     const statusColors = {
         Available: theme.palette.warning.main,
         Assigned: theme.palette.success.main,
         Maintenance: theme.palette.error.main,
     };
 
+    // States for managing delete dialogs, snackbar notifications, sorting, selection, and pagination
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [computerToDelete, setComputerToDelete] = useState(null);
 
@@ -292,23 +303,27 @@ const Computers = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    // Function to show a snackbar notification with a given message
     const showSnackbar = (message) => {
         setSnackbarMessage(message);
         setSnackbarOpen(true);
     };
 
+    // Effect to show a success snackbar notification
     useEffect(() => {
         if (location.state?.successMessage) {
             showSnackbar(location.state.successMessage);
         }
     }, [location.state]);
 
+    // Handlers for sorting, selecting, pagination, editing, and deleting computers
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
     };
 
+    // Handler for when the "Select All" checkbox is clicked
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
             const newSelecteds = computers.map((n) => n._id);
@@ -318,6 +333,7 @@ const Computers = () => {
         }
     };
 
+    // Handler for when an individual computer row's checkbox is clicked
     const handleClick = (event, computerId) => {
         const selectedIndex = selected.indexOf(computerId);
         let newSelected = [];
@@ -338,6 +354,7 @@ const Computers = () => {
         setSelected(newSelected);
     };
 
+    // Handlers for changing the page and number of rows per page in the pagination controls
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -410,8 +427,10 @@ const Computers = () => {
         }
     };
 
+    // Calculate the number of empty rows to display at the bottom of the table to maintain consistent height
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - computers.length) : 0;
 
+    // Memoize the visible rows based on the current filters, sorting, and pagination to optimize performance
     const visibleRows = useMemo(() => {
         return filteredComputers
             .slice()

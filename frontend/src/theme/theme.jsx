@@ -1,5 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 
+// Custom MUI theme with a dark color scheme and specific palette colors for primary, secondary, error, background, text, divider, and action states
 const theme = createTheme({
     palette: {
         mode: 'dark',

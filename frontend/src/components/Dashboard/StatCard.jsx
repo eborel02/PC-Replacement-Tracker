@@ -1,6 +1,7 @@
 import { Box, Typography } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
 
+// StatCard component for displaying key metrics on the dashboard
 const StatCard = ({ title, value, color = '#1976d2', onClick }) => {
     const theme = useTheme();
 
@@ -9,7 +10,7 @@ const StatCard = ({ title, value, color = '#1976d2', onClick }) => {
             onClick={onClick}
             sx={{
                 p: 2,
-                bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.8) : theme.palette.background.paper,
+                bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.paper, 0.8) : theme.palette.background.paper, // adaptive background
                 borderRadius: 2,
                 boxShadow: 3,
                 borderTop: `5px solid ${color}`, // vertical accent

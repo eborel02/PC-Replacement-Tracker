@@ -37,3 +37,17 @@
 - Fix computers not updating status when an employee is deleted and vice versa
 - Polish and add a bit more UI components to make more visually appealing
 - Find a way to serve the application so that others can access that are not on local machine
+
+# Current Progress (2/20/2026)
+
+## What I finished
+- Implemented bulk delete for multi-select rows
+- Refactored Edit/Create pages to add dropdown on createEmployees.jsx 
+- Added success snackbars and form field error messages
+- Added a note at the top of the Employees.jsx page for a reminder to anyone using it
+- Polishing touches and populated DB with the real data for Employees
+
+## What's Next
+- Fix any bugs that I did not catch before
+- Try to get the application deployed so that others can access and use it
+- Maintain
