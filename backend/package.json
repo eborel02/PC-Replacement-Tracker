@@ -4,7 +4,7 @@
   "description": "PC Replacement Tracker API",
   "license": "ISC",
   "author": "Elijah Borel",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "nodemon ./index.js --exec babel-node -e js"
