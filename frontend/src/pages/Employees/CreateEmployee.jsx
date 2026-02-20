@@ -17,7 +17,7 @@ const CreateEmployee = () => {
     const navigate = useNavigate();
     const [employee, setEmployee] = useState({
         employeeName: '',
-        email : '',
+        email : null,
         currentComputer: '',
         status: '',
         newComputer: null,
@@ -26,7 +26,7 @@ const CreateEmployee = () => {
 
     const [formData, setFormData] = useState({
         employeeName: '',
-        email : '',
+        email : null,
         currentComputer: '',
         status: '',
         newComputer: '',

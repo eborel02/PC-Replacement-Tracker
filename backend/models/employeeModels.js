@@ -10,9 +10,8 @@ export const EmployeeSchema = new Schema({
     },
     // Employee email
     email: {
-        type: String,
-        required: true,
-        unique: true
+        type: String || null,
+        sparse: true
     },
     // Employee's current computer number.
     // Must be unique to prevent duplicates

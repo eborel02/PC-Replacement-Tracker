@@ -22,7 +22,7 @@ export const addNewEmployee = async (req, res) => {
 
         // checks if email is already in use so duplicate employees are not added
         const existing = await Employee.findOne({ email })
-        if (existing) {
+        if (existing && existing.email) {
             return res.status(400).json({
                 message: `Employee already exists with email: ${email}`
             })
