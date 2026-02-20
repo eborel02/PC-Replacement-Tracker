@@ -29,4 +29,11 @@
 
 ## What I finished
 - Created dashboard controller and route
-- 
+- Created dashboard page and added functionality with metrics
+- Polished some things and made some small refactors
+
+## What's Next
+- Implement bulk delete for multi-select rows
+- Fix computers not updating status when an employee is deleted and vice versa
+- Polish and add a bit more UI components to make more visually appealing
+- Find a way to serve the application so that others can access that are not on local machine
