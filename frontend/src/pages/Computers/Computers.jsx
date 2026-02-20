@@ -125,7 +125,7 @@ EnhancedTableHead.propTypes = {
 };
 
 function EnhancedTableToolbar(props) {
-    const { numSelected, onAddComputer, statusFilter } = props;
+    const { numSelected, onAddComputer, statusFilter, onBulkDelete } = props;
     const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
 
@@ -172,8 +172,8 @@ function EnhancedTableToolbar(props) {
                 </Typography>
             )}
             {numSelected > 0 ? (
-                <Tooltip title="Delete">
-                    <IconButton>
+                <Tooltip title="Delete Selected">
+                    <IconButton color="error" onClick={onBulkDelete}>
                         <DeleteIcon />
                     </IconButton>
                 </Tooltip>
@@ -279,6 +279,8 @@ const Computers = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [computerToDelete, setComputerToDelete] = useState(null);
 
+    const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+
     const [order, setOrder] = useState('asc');
     const [orderBy, setOrderBy] = useState('computerNumber');
     const [selected, setSelected] = useState([]);
@@ -293,19 +295,19 @@ const Computers = () => {
 
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            const newSelecteds = computers.map((n) => n.computerNumber);
+            const newSelecteds = computers.map((n) => n._id);
             setSelected(newSelecteds);
         } else {
             setSelected([]);
         }
     };
 
-    const handleClick = (event, computerNumber) => {
-        const selectedIndex = selected.indexOf(computerNumber);
+    const handleClick = (event, computerId) => {
+        const selectedIndex = selected.indexOf(computerId);
         let newSelected = [];
 
         if (selectedIndex === -1) {
-            newSelected = [...selected, computerNumber];
+            newSelected = [...selected, computerId];
         } else if (selectedIndex === 0) {
             newSelected = selected.slice(1);
         } else if (selectedIndex === selected.length - 1) {
@@ -361,6 +363,37 @@ const Computers = () => {
         }
     };
 
+    const handleOpenBulkDeleteDialog = () => {
+        setBulkDeleteDialogOpen(true);
+    };
+
+    const handleCloseBulkDeleteDialog = () => {
+        setBulkDeleteDialogOpen(false);
+    };
+
+    const handleConfirmBulkDelete = async () => {
+        try {
+            const response = await fetch(`http://localhost:4000/computers/bulk-delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ computerIDs: selected }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete selected computers');
+            }
+
+            setComputers(computers.filter(computer => !selected.includes(computer._id)));
+            setSelected([]);
+        } catch (error) {
+            console.error('Error deleting selected computers:', error);
+        } finally {
+            handleCloseBulkDeleteDialog();
+        }
+    };
+
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - computers.length) : 0;
 
     const visibleRows = useMemo(() => {
@@ -386,7 +419,12 @@ const Computers = () => {
             )}
 
             <Paper>
-                <EnhancedTableToolbar numSelected={selected.length} onAddComputer={() => navigate('/computers/new')} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
+                <EnhancedTableToolbar 
+                    numSelected={selected.length} 
+                    onAddComputer={() => navigate('/computers/new')} 
+                    statusFilter={statusFilter} 
+                    setStatusFilter={setStatusFilter}
+                    onBulkDelete={handleOpenBulkDeleteDialog} />
                 <TableContainer>
                     <Table>
                         <EnhancedTableHead
@@ -399,7 +437,7 @@ const Computers = () => {
                         />
                         <TableBody>
                             {visibleRows.map((row, index) => {
-                                const isItemSelected = selected.indexOf(row.computerNumber) !== -1;
+                                const isItemSelected = selected.indexOf(row._id) !== -1;
                                 const labelId = `enhanced-table-checkbox-${index}`;
 
                                 return (
@@ -408,7 +446,7 @@ const Computers = () => {
                                         role="checkbox"
                                         aria-checked={isItemSelected}
                                         tabIndex={-1}
-                                        key={row.computerNumber}
+                                        key={row._id}
                                         selected={isItemSelected}
                                         sx={{
                                             cursor: 'pointer',
@@ -422,7 +460,7 @@ const Computers = () => {
                                                 inputProps={{ 'aria-labelledby': labelId }}
                                                 onClick={(event) => {
                                                     event.stopPropagation();
-                                                    handleClick(event, row.computerName);
+                                                    handleClick(event, row._id);
                                                 }}
                                             />
                                         </TableCell>
@@ -516,6 +554,26 @@ const Computers = () => {
                 <DialogActions>
                     <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
                     <Button onClick={handleConfirmDelete} autoFocus color="error" variant="contained">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={bulkDeleteDialogOpen}
+                onClose={handleCloseBulkDeleteDialog}
+                aria-labelledby="alert-dialog-title"
+            >
+                <DialogTitle>
+                    Delete {selected.length} Computers?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseBulkDeleteDialog}>Cancel</Button>
+                    <Button onClick={handleConfirmBulkDelete} autoFocus color="error" variant="contained">
                         Delete
                     </Button>
                 </DialogActions>
