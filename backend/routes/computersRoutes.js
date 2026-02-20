@@ -6,7 +6,7 @@ import {
     updateComputer,
     deleteComputer,
     bulkDeleteComputers
-} from '../controllers/computersControllers'
+} from '../controllers/computersControllers.js'
 
 const router = Router()
 

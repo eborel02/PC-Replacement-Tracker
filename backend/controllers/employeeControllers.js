@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-import { EmployeeSchema } from '../models/employeeModels'
-import { ComputerSchema } from '../models/computersModels'
+import { EmployeeSchema } from '../models/employeeModels.js'
+import { ComputerSchema } from '../models/computersModels.js'
 
 const Employee = mongoose.models.Employee || mongoose.model('Employee', EmployeeSchema)
 const Computer = mongoose.models.Computer || mongoose.model('Computer', ComputerSchema)

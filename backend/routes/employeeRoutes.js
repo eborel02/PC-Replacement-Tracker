@@ -6,7 +6,7 @@ import {
     updateEmployee,
     deleteEmployee,
     bulkDeleteEmployees
-} from '../controllers/employeeControllers'
+} from '../controllers/employeeControllers.js'
 
 const router = Router()
 
