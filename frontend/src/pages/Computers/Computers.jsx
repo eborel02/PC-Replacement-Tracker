@@ -38,6 +38,8 @@ import {
 } from "@mui/material";
 import PropTypes from 'prop-types';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Define the columns for the computer table
 const headCells = [
     { id: 'computerNumber', numeric: false, disablePadding: true, label: 'Computer Number' },
@@ -265,7 +267,7 @@ const Computers = () => {
     const [computers, setComputers] = useState([]);
     const fetchComputer = async () => {
         try {
-            const response = await fetch("https://pc-replacement-tracker.onrender.com/computers");
+            const response = await fetch(`${API_URL}/computers`);
             const data = await response.json();
             setComputers(data.computers);
         } catch (error) {
@@ -380,7 +382,7 @@ const Computers = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            const response = await fetch(`https://pc-replacement-tracker.onrender.com/computers/${computerToDelete}`, {
+            const response = await fetch(`${API_URL}/computers/${computerToDelete}`, {
                 method: 'DELETE',
             });
             if (!response.ok) {
@@ -406,7 +408,7 @@ const Computers = () => {
 
     const handleConfirmBulkDelete = async () => {
         try {
-            const response = await fetch(`https://pc-replacement-tracker.onrender.com/computers/bulk-delete`, {
+            const response = await fetch(`${API_URL}/computers/bulk-delete`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

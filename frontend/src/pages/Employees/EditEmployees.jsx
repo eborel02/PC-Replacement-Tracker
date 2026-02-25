@@ -14,6 +14,8 @@ import {
     InputLabel,
 } from "@mui/material";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 const EditEmployees = () => {
     const { id } = useParams();
@@ -45,7 +47,7 @@ const EditEmployees = () => {
         const fetchEmployeeAndComputers = async () => {
             try {
                 // Fetch employee
-                const responseEmp = await fetch(`https://pc-replacement-tracker.onrender.com/employees/${id}`);
+                const responseEmp = await fetch(`${API_URL}/employees/${id}`);
                 const dataEmp = await responseEmp.json();
                 const assignedComputer = dataEmp.employee.newComputer;
                 setOriginalAssignedTo(assignedComputer?._id || null);
@@ -60,7 +62,7 @@ const EditEmployees = () => {
 
 
                 // Fetch computers
-                const responseComp = await fetch('https://pc-replacement-tracker.onrender.com/computers');
+                const responseComp = await fetch(`${API_URL}/computers`);
                 const dataComp = await responseComp.json();
 
 
@@ -144,7 +146,7 @@ const EditEmployees = () => {
         }
 
         try {
-            const response = await fetch(`https://pc-replacement-tracker.onrender.com/employees/${id}`, {
+            const response = await fetch(`${API_URL}/employees/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

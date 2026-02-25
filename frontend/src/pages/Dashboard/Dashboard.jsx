@@ -5,6 +5,8 @@ import { Typography, Box, Grid } from '@mui/material';
 import StatCard from '../../components/Dashboard/StatCard';
 import SemiCircleProgress from '../../components/Dashboard/SemiCircleProgress';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Dashboard = () => {
     // Dashboard component to display key metrics and operational status
     const theme = useTheme();
@@ -46,7 +48,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const response = await fetch('https://pc-replacement-tracker.onrender.com/dashboard');
+                const response = await fetch(`${API_URL}/dashboard`);
                 const data = await response.json();
                 console.log('Dashboard data:', data);
                 setDashboardData(data);

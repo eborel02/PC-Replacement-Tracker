@@ -14,6 +14,8 @@ import { Box,
   MenuItem,
 } from "@mui/material";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const CreateComputer = () => {
     const navigate = useNavigate();
     const [computer, setComputer] = useState({
@@ -39,7 +41,7 @@ const CreateComputer = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const response = await fetch('https://pc-replacement-tracker.onrender.com/employees');
+                const response = await fetch(`${API_URL}/employees`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -97,7 +99,7 @@ const CreateComputer = () => {
         }
 
         try {
-            const response = await fetch('https://pc-replacement-tracker.onrender.com/computers', {
+            const response = await fetch(`${API_URL}/computers`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

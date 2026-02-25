@@ -14,6 +14,8 @@ import {
     Typography,
 } from '@mui/material';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const EditComputer = () => {
     // State for computer details, employees list, form errors, and original assigned employee
     const { id } = useParams();
@@ -41,7 +43,7 @@ const EditComputer = () => {
     useEffect(() => {
         const fetchComputerAndEmployees = async () => {
             try {
-                const responseComp = await fetch(`https://pc-replacement-tracker.onrender.com/computers/${id}`);
+                const responseComp = await fetch(`${API_URL}/computers/${id}`);
                 const dataComp = await responseComp.json();
                 const assignedEmployee = dataComp.computer.assignedTo;
 
@@ -53,7 +55,7 @@ const EditComputer = () => {
                     notes: dataComp.computer.notes || '',
                 });
 
-                const responseEmp = await fetch('https://pc-replacement-tracker.onrender.com/employees');
+                const responseEmp = await fetch(`${API_URL}/employees`);
                 const dataEmp = await responseEmp.json();
 
                 // Add currently assigned employee if missing
@@ -135,7 +137,7 @@ const EditComputer = () => {
         }
 
         try {
-            const response = await fetch(`https://pc-replacement-tracker.onrender.com/computers/${id}`, {
+            const response = await fetch(`${API_URL}/computers/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

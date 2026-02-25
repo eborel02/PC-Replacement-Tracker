@@ -13,6 +13,8 @@ import { Box,
   MenuItem,
 } from "@mui/material";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const CreateEmployee = () => {
     const navigate = useNavigate();
     const [employee, setEmployee] = useState({
@@ -41,7 +43,7 @@ const CreateEmployee = () => {
     useEffect(() => {
         const fetchComputers = async () => {
             try {
-                const response = await fetch('https://pc-replacement-tracker.onrender.com/computers');
+                const response = await fetch(`${API_URL}/computers`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -103,7 +105,7 @@ const CreateEmployee = () => {
         }
 
         try {
-            const response = await fetch('https://pc-replacement-tracker.onrender.com/employees', {
+            const response = await fetch(`${API_URL}/employees`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
