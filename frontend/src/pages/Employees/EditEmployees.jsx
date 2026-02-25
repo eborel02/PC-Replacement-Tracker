@@ -86,7 +86,7 @@ const EditEmployees = () => {
         if (!Array.isArray(computers)) return [];
 
         // Computers WITHOUT assigned employee
-        let list = computers.filter(c => !c.assignedTo);
+        let list = computers.filter(c => !c.assignedTo && c.status !== 'Maintenance');
 
         // Allow currently assigned computer to be selectable
         if (originalAssignedTo) {

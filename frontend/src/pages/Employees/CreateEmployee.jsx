@@ -132,7 +132,7 @@ const CreateEmployee = () => {
         if (!Array.isArray(computers)) return [];
 
         // Computers WITHOUT an assigned employee
-        let list = computers.filter(comp => !comp.assignedTo);
+        let list = computers.filter(comp => !comp.assignedTo && comp.status !== 'Maintenance');
 
         return list;
     }, [computers]);
