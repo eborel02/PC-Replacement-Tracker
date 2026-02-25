@@ -108,7 +108,6 @@ export const getEmployees = async (req, res) => {
     try {
         // Create employees array that retrieves all employees sorted by name (case insensitive)
         const employees = await Employee.find().collation({ locale: 'en', strength: 2 }).sort({ employeeName: 1 }).populate('newComputer', 'computerNumber')
-        console.log(JSON.stringify(employees, null, 2))
 
         // Respond with successful message and all employees
         res.status(200).json({
@@ -175,6 +174,8 @@ export const updateEmployee = async (req, res) => {
         // Extract ID from URL and updates from request body
         const { employeeID } = req.params
         const updates = req.body
+
+        console.log('Update request body:', req.body)
 
         // Validate ID
         if (!mongoose.Types.ObjectId.isValid(employeeID)) {
@@ -274,6 +275,9 @@ export const updateEmployee = async (req, res) => {
         }
         if (updates.notes !== undefined) {
             employee.notes = updates.notes;
+        }
+        if (updates.status && updates.status !== 'Replaced') {
+            employee.status = updates.status;
         }
 
         await employee.save();

@@ -45,7 +45,7 @@ const EditEmployees = () => {
         const fetchEmployeeAndComputers = async () => {
             try {
                 // Fetch employee
-                const responseEmp = await fetch(`http://localhost:4000/employees/${id}`);
+                const responseEmp = await fetch(`https://pc-replacement-tracker.onrender.com/employees/${id}`);
                 const dataEmp = await responseEmp.json();
                 const assignedComputer = dataEmp.employee.newComputer;
                 setOriginalAssignedTo(assignedComputer?._id || null);
@@ -60,7 +60,7 @@ const EditEmployees = () => {
 
 
                 // Fetch computers
-                const responseComp = await fetch('http://localhost:4000/computers');
+                const responseComp = await fetch('https://pc-replacement-tracker.onrender.com/computers');
                 const dataComp = await responseComp.json();
 
 
@@ -144,13 +144,15 @@ const EditEmployees = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:4000/employees/${id}`, {
+            const response = await fetch(`https://pc-replacement-tracker.onrender.com/employees/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(employee),
             });
+
+            console.log('Update response:', employee);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to update employee');

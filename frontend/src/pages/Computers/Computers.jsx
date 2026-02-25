@@ -265,7 +265,7 @@ const Computers = () => {
     const [computers, setComputers] = useState([]);
     const fetchComputer = async () => {
         try {
-            const response = await fetch("http://localhost:4000/computers");
+            const response = await fetch("https://pc-replacement-tracker.onrender.com/computers");
             const data = await response.json();
             setComputers(data.computers);
         } catch (error) {
@@ -380,7 +380,7 @@ const Computers = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/computers/${computerToDelete}`, {
+            const response = await fetch(`https://pc-replacement-tracker.onrender.com/computers/${computerToDelete}`, {
                 method: 'DELETE',
             });
             if (!response.ok) {
@@ -406,7 +406,7 @@ const Computers = () => {
 
     const handleConfirmBulkDelete = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/computers/bulk-delete`, {
+            const response = await fetch(`https://pc-replacement-tracker.onrender.com/computers/bulk-delete`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

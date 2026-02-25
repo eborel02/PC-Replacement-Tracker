@@ -46,7 +46,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const response = await fetch('http://localhost:4000/dashboard');
+                const response = await fetch('https://pc-replacement-tracker.onrender.com/dashboard');
                 const data = await response.json();
                 console.log('Dashboard data:', data);
                 setDashboardData(data);

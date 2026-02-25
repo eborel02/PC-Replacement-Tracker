@@ -41,7 +41,7 @@ const CreateEmployee = () => {
     useEffect(() => {
         const fetchComputers = async () => {
             try {
-                const response = await fetch('http://localhost:4000/computers');
+                const response = await fetch('https://pc-replacement-tracker.onrender.com/computers');
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -103,7 +103,7 @@ const CreateEmployee = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:4000/employees', {
+            const response = await fetch('https://pc-replacement-tracker.onrender.com/employees', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

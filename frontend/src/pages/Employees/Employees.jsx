@@ -267,7 +267,7 @@ const Employees = () => {
     const [employees, setEmployees] = useState([]);
     const fetchEmployees = async () => {
         try {
-            const response = await fetch('http://localhost:4000/employees')
+            const response = await fetch(`https://pc-replacement-tracker.onrender.com/employees`);
             const data = await response.json();
             setEmployees(data.employees);
         } catch (error) {
@@ -379,7 +379,7 @@ const Employees = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/employees/${employeeToDelete}`, {
+            const response = await fetch(`https://pc-replacement-tracker.onrender.com/employees/${employeeToDelete}`, {
                 method: 'DELETE',
             });
             if (!response.ok) {
@@ -405,7 +405,7 @@ const Employees = () => {
 
     const handleConfirmBulkDelete = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/employees/bulk-delete`, {
+            const response = await fetch(`$https://pc-replacement-tracker.onrender.com/employees/bulk-delete`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

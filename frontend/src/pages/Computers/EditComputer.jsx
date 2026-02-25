@@ -41,7 +41,7 @@ const EditComputer = () => {
     useEffect(() => {
         const fetchComputerAndEmployees = async () => {
             try {
-                const responseComp = await fetch(`http://localhost:4000/computers/${id}`);
+                const responseComp = await fetch(`https://pc-replacement-tracker.onrender.com/computers/${id}`);
                 const dataComp = await responseComp.json();
                 const assignedEmployee = dataComp.computer.assignedTo;
 
@@ -53,7 +53,7 @@ const EditComputer = () => {
                     notes: dataComp.computer.notes || '',
                 });
 
-                const responseEmp = await fetch('http://localhost:4000/employees');
+                const responseEmp = await fetch('https://pc-replacement-tracker.onrender.com/employees');
                 const dataEmp = await responseEmp.json();
 
                 // Add currently assigned employee if missing
@@ -135,7 +135,7 @@ const EditComputer = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:4000/computers/${id}`, {
+            const response = await fetch(`https://pc-replacement-tracker.onrender.com/computers/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
