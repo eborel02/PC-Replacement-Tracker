@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import App from "./App";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Employees from "./pages/Employees/Employees";
@@ -22,6 +22,7 @@ ReactDOM.createRoot(root).render(
     <CssBaseline />
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/" element={<App />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="employees" element={<Employees />} />
